@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0a2a4a"/>
+      <stop offset="100%" stop-color="#0062B8"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="450" fill="url(#bg)"/>
+  <!-- Residential rooflines -->
+  <g fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1.5">
+    <path d="M50 320 L100 280 L150 320 M150 320 L200 275 L250 320 M250 320 L310 270 L370 320 M370 320 L420 285 L470 320"/>
+    <path d="M480 320 L530 275 L580 320 M580 320 L640 265 L700 320"/>
+    <path d="M100 350 L160 305 L220 350 M220 350 L290 295 L360 350 M360 350 L420 310 L480 350"/>
+    <path d="M490 350 L550 300 L610 350 M610 350 L670 310 L730 350"/>
+  </g>
+  <!-- Hill contour -->
+  <path d="M0 380 Q200 340 400 360 Q600 380 800 350 L800 450 L0 450Z" fill="rgba(255,255,255,0.05)"/>
+  <!-- Text -->
+  <text x="400" y="200" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-family="Inter,Helvetica,sans-serif" font-size="14" font-weight="700" letter-spacing="4">WEST SIDE</text>
+  <text x="400" y="225" text-anchor="middle" fill="rgba(232,117,48,0.5)" font-family="Inter,Helvetica,sans-serif" font-size="11" letter-spacing="2">WHITE PLAINS</text>
+</svg>

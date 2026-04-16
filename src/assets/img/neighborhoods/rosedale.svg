@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">Rosedale placeholder graphic</title>
+  <desc id="desc">Abstract placeholder artwork for Rosedale.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#eef2f8"/>
+      <stop offset="100%" stop-color="#d6dee9"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#bg)"/>
+  <g fill="none" stroke="#90a6ba" stroke-width="6" opacity=".62">
+    <path d="M148 194c164 68 282 100 470 118 166 16 286 4 466-28 162-28 266-56 370-130"/>
+    <path d="M114 708c214-118 352-176 560-204 214-28 352 0 608 118"/>
+    <path d="M262 114v774"/>
+    <path d="M640 104v786"/>
+    <path d="M972 132v742"/>
+    <path d="M1284 176v654"/>
+  </g>
+  <g fill="none" stroke="#103b62" stroke-width="16" opacity=".92">
+    <path d="M170 620c204-88 332-128 498-140 166-12 270 10 426 78 128 56 226 124 346 220"/>
+    <path d="M284 202c106 88 176 136 298 202 114 62 204 90 352 118 128 24 220 28 408 12"/>
+  </g>
+  <g fill="#0f5f7c" opacity=".92">
+    <circle cx="582" cy="438" r="18"/>
+    <circle cx="928" cy="520" r="18"/>
+    <circle cx="1182" cy="634" r="18"/>
+  </g>
+  <rect x="72" y="792" width="368" height="126" rx="18" fill="#ffffff" opacity=".94"/>
+  <text x="120" y="850" fill="#103b62" font-family="Inter, Arial, sans-serif" font-size="52" font-weight="700">Rosedale</text>
+  <text x="120" y="892" fill="#5a6d80" font-family="Inter, Arial, sans-serif" font-size="28">White Plains neighborhood placeholder</text>
+</svg>

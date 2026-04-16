@@ -1,0 +1,100 @@
+---
+layout: layouts/base.njk
+title: What's Happening
+metaDescription: Civic events, neighborhood happenings, and public life across White Plains.
+---
+{% from "components/macros.njk" import eventCard %}
+
+<section class="page-hero">
+  <div class="wrap">
+    <p class="eyebrow">What's Happening</p>
+    <h1>What's happening in White Plains</h1>
+    <p>Civic events, neighborhood programs, public meetings, and community happenings across the city.</p>
+  </div>
+</section>
+
+<section class="section-compact">
+  <div class="wrap">
+    <form class="filter-bar" data-event-filters>
+      <label>
+        <span>Search</span>
+        <input type="search" name="search" placeholder="Event, place, organizer, or tag">
+      </label>
+      <label>
+        <span>Category</span>
+        <select name="category">
+          <option value="">All categories</option>
+          {% for category in eventStore.categories %}
+            <option value="{{ category }}">{{ category }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        <span>Month</span>
+        <select name="month">
+          <option value="">All months</option>
+          {% for monthKey in eventStore.months %}
+            <option value="{{ monthKey }}">{{ monthKey | monthYearLabel }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <button class="btn btn-outline" type="reset">Clear</button>
+    </form>
+  </div>
+</section>
+
+<section class="section" data-event-section>
+  <div class="wrap">
+    <div class="section-header">
+      <div>
+        <h2>Upcoming</h2>
+        <p>Events most likely to matter to White Plains residents.</p>
+      </div>
+      <span class="archive-count" data-event-count>{{ eventStore.upcoming.length }} events</span>
+    </div>
+
+    {% if eventStore.upcoming.length %}
+      <div class="card-grid">
+        {% for event in eventStore.upcoming %}
+          {{ eventCard(event) }}
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <h3>Nothing on the calendar right now.</h3>
+        <p>Check back soon.</p>
+      </div>
+    {% endif %}
+
+    <div class="empty-state empty-inline" hidden data-filter-empty>
+      <h3>No events match that search.</h3>
+      <p>Try a different term or clear the filters.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section section-alt">
+  <div class="wrap">
+    <details class="archive-panel"{% if not eventStore.upcoming.length %} open{% endif %}>
+      <summary>
+        <span>
+          <span class="eyebrow">Archive</span>
+          <strong>Past events</strong>
+        </span>
+        <span class="archive-count">{{ eventStore.past.length }} events</span>
+      </summary>
+      <div data-event-section>
+        <p class="archive-intro">Older listings kept here for reference.</p>
+        <div class="card-grid">
+          {% for event in eventStore.past %}
+            {{ eventCard(event) }}
+          {% endfor %}
+        </div>
+        <div class="empty-state empty-inline" hidden data-filter-empty>
+          <h3>No past events match that.</h3>
+          <p>Try a broader search or clear filters.</p>
+        </div>
+      </div>
+    </details>
+  </div>
+</section>

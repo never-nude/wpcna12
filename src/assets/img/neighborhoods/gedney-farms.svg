@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">Gedney Farms placeholder graphic</title>
+  <desc id="desc">Abstract placeholder artwork for Gedney Farms.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#eef4f7"/>
+      <stop offset="100%" stop-color="#d8e4ea"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#bg)"/>
+  <g fill="none" stroke="#95aab8" stroke-width="6" opacity=".62">
+    <path d="M124 238h1328"/>
+    <path d="M124 406h1328"/>
+    <path d="M124 574h1328"/>
+    <path d="M124 742h1328"/>
+    <path d="M244 122v756"/>
+    <path d="M544 122v756"/>
+    <path d="M844 122v756"/>
+    <path d="M1144 122v756"/>
+  </g>
+  <g fill="none" stroke="#103b62" stroke-width="16" opacity=".92">
+    <path d="M152 694c138-74 240-130 376-174 154-50 292-62 474-20 170 40 270 92 446 198"/>
+    <path d="M246 228c118 60 212 86 334 94 108 8 176-8 286-42 112-34 192-78 340-122 120-36 210-46 370-32"/>
+  </g>
+  <g fill="#103b62">
+    <rect x="706" y="510" width="28" height="28" rx="6"/>
+    <rect x="846" y="474" width="28" height="28" rx="6"/>
+    <rect x="986" y="524" width="28" height="28" rx="6"/>
+  </g>
+  <rect x="72" y="792" width="438" height="126" rx="18" fill="#ffffff" opacity=".94"/>
+  <text x="120" y="850" fill="#103b62" font-family="Inter, Arial, sans-serif" font-size="52" font-weight="700">Gedney Farms</text>
+  <text x="120" y="892" fill="#5a6d80" font-family="Inter, Arial, sans-serif" font-size="28">White Plains neighborhood placeholder</text>
+</svg>

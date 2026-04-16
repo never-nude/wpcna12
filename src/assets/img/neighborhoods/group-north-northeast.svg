@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0.5" y2="1">
+      <stop offset="0%" stop-color="#003d7a"/>
+      <stop offset="100%" stop-color="#0055A4"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="450" fill="url(#bg)"/>
+  <!-- Rolling hills / ridge lines -->
+  <path d="M0 340 Q150 290 300 310 Q450 330 600 295 Q700 270 800 300 L800 450 L0 450Z" fill="rgba(255,255,255,0.06)"/>
+  <path d="M0 370 Q200 330 400 350 Q600 370 800 340 L800 450 L0 450Z" fill="rgba(255,255,255,0.04)"/>
+  <!-- Tree shapes -->
+  <g fill="rgba(255,255,255,0.08)">
+    <circle cx="120" cy="310" r="22"/>
+    <circle cx="180" cy="305" r="18"/>
+    <circle cx="350" cy="300" r="25"/>
+    <circle cx="410" cy="308" r="16"/>
+    <circle cx="550" cy="285" r="20"/>
+    <circle cx="620" cy="290" r="24"/>
+    <circle cx="700" cy="278" r="18"/>
+  </g>
+  <!-- Text -->
+  <text x="400" y="195" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-family="Inter,Helvetica,sans-serif" font-size="14" font-weight="700" letter-spacing="4">NORTH &amp; NORTHEAST</text>
+  <text x="400" y="220" text-anchor="middle" fill="rgba(232,117,48,0.5)" font-family="Inter,Helvetica,sans-serif" font-size="11" letter-spacing="2">WHITE PLAINS</text>
+</svg>

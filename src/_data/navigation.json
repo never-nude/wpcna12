@@ -1,0 +1,30 @@
+[
+  {
+    "label": "Home",
+    "url": "/"
+  },
+  {
+    "label": "Neighborhoods",
+    "url": "/neighborhoods/"
+  },
+  {
+    "label": "What's Happening",
+    "url": "/events/"
+  },
+  {
+    "label": "Community Posting",
+    "url": "/community-posting/"
+  },
+  {
+    "label": "Agendas",
+    "url": "/agendas/"
+  },
+  {
+    "label": "CNA Workshop Handbook",
+    "url": "/workshops/"
+  },
+  {
+    "label": "About",
+    "url": "/about/"
+  }
+]

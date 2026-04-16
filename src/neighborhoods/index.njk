@@ -1,0 +1,33 @@
+---
+layout: layouts/base.njk
+title: White Plains Neighborhoods
+metaDescription: A neighborhood-by-neighborhood guide to White Plains, with local context across the city.
+---
+{% from "components/macros.njk" import neighborhoodCard %}
+
+<section class="page-hero">
+  <div class="wrap">
+    <p class="eyebrow">Neighborhood Guide</p>
+    <h1>White Plains neighborhoods</h1>
+    <p>{{ neighborhoodStore.count }} neighborhoods, grouped by area. Browse White Plains one neighborhood at a time.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    {% for group in neighborhoodStore.groups %}
+      <section class="neighborhood-group" id="{{ group.slug }}">
+        <div class="neighborhood-group-intro">
+          <p class="eyebrow">{{ group.name }}</p>
+          <h2>{{ group.name }}</h2>
+          <p>{{ group.description }}</p>
+        </div>
+        <div class="neighborhood-grid">
+          {% for neighborhood in group.neighborhoods %}
+            {{ neighborhoodCard(neighborhood) }}
+          {% endfor %}
+        </div>
+      </section>
+    {% endfor %}
+  </div>
+</section>

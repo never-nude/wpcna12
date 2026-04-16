@@ -1,0 +1,100 @@
+---
+pagination:
+  data: neighborhoodStore.all
+  size: 1
+  alias: neighborhood
+permalink: "neighborhoods/{{ neighborhood.slug }}/index.html"
+layout: layouts/base.njk
+eleventyComputed:
+  title: "{{ neighborhood.name }}"
+  metaDescription: "{{ neighborhood.metaDescription }}"
+  ogImage: "{{ neighborhood.hero and neighborhood.hero.imagePath or site.defaultOgImage }}"
+---
+<section class="page-hero">
+  <div class="wrap{% if neighborhood.hero %} page-hero-media{% endif %}">
+    <div>
+      <a class="back-link" href="{{ '/neighborhoods/' | withPrefix }}">Neighborhoods</a>
+      <p class="eyebrow">{{ neighborhood.group }}</p>
+      <h1>{{ neighborhood.name }}</h1>
+      <p>{{ neighborhood.teaser }}</p>
+    </div>
+    {% if neighborhood.hero %}
+      <figure class="page-hero-figure">
+        <img src="{{ neighborhood.hero.imagePath | withPrefix }}" alt="{{ neighborhood.hero.altText }}" loading="eager">
+        <figcaption class="page-hero-credit">
+          <span>{{ neighborhood.hero.attributionText }}</span>
+          <a href="{{ neighborhood.hero.attributionUrl }}" rel="external noopener">Source</a>
+          <span>{{ neighborhood.hero.license }}</span>
+        </figcaption>
+      </figure>
+    {% endif %}
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="detail-grid">
+      <article class="detail-main">
+        <div class="detail-meta">
+          <span class="tag">Neighborhood</span>
+          <span style="font-size:0.85rem;color:var(--ink-muted)">{{ neighborhood.group }}</span>
+        </div>
+
+        <h2>Local feel</h2>
+        {% for paragraph in neighborhood.detailParagraphs %}
+          <p>{{ paragraph }}</p>
+        {% endfor %}
+
+        <div class="detail-links">
+          <h3>In the wider picture</h3>
+          <p>{{ neighborhood.groupDescription }}</p>
+          <p>{{ neighborhood.orientationNote }}</p>
+        </div>
+
+        {% set mapBox = mapBoxes.boxes[neighborhood.slug] %}
+        {% if mapBox %}
+          <div class="detail-minimap">
+            <h3>On the map</h3>
+            <a class="minimap-frame" href="{{ ('/neighborhood-map/?highlight=' + neighborhood.slug) | withPrefix }}" aria-label="View {{ neighborhood.name }} on the full neighborhood map">
+              <img src="{{ '/assets/img/neighborhood-map.png' | withPrefix }}" alt="Static map of White Plains with {{ neighborhood.name }} highlighted." loading="lazy">
+              <span
+                class="minimap-highlight"
+                style="left:{{ (mapBox[0] / mapBoxes.imageWidth * 100) }}%;top:{{ (mapBox[1] / mapBoxes.imageHeight * 100) }}%;width:{{ (mapBox[2] / mapBoxes.imageWidth * 100) }}%;height:{{ (mapBox[3] / mapBoxes.imageHeight * 100) }}%;"
+                aria-hidden="true"
+              ></span>
+            </a>
+            <p class="minimap-caption">{{ neighborhood.name }} shown on the White Plains neighborhood map. <a href="{{ ('/neighborhood-map/?highlight=' + neighborhood.slug) | withPrefix }}">Open full map →</a></p>
+          </div>
+        {% endif %}
+      </article>
+
+      <aside class="detail-sidebar">
+        <div class="sidebar-card">
+          <p class="eyebrow">At a Glance</p>
+          <dl>
+            <div><dt>Neighborhood</dt><dd>{{ neighborhood.name }}</dd></div>
+            <div><dt>Section</dt><dd>{{ neighborhood.group }}</dd></div>
+            {% if neighborhood.referencePoints.length %}
+              <div><dt>Local anchors</dt><dd>{{ neighborhood.referencePoints | join(", ") }}</dd></div>
+            {% endif %}
+            <div><dt>City</dt><dd>White Plains</dd></div>
+          </dl>
+          <a class="btn btn-primary btn-block" href="{{ '/events/' | withPrefix }}">See White Plains events</a>
+          <a class="detail-map-link" href="{{ ('/neighborhood-map/?highlight=' + neighborhood.slug) | withPrefix }}">View {{ neighborhood.name }} on the map</a>
+        </div>
+
+        {% if neighborhood.relatedNeighborhoods.length %}
+          <div class="sidebar-secondary">
+            <p class="eyebrow">Nearby</p>
+            <h3>Nearby neighborhoods</h3>
+            <ul>
+              {% for related in neighborhood.relatedNeighborhoods %}
+                <li><a href="{{ related.detailUrl | withPrefix }}">{{ related.name }}</a></li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+      </aside>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,1092 @@
+import fs from "node:fs/promises";
+import path from "node:path";
+import process from "node:process";
+import { fileURLToPath } from "node:url";
+
+import * as cheerio from "cheerio";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const ROOT = path.resolve(__dirname, "..");
+const AUTO_EVENTS_PATH = path.join(ROOT, "src", "_data", "events.auto.json");
+
+const TIME_ZONE = "America/New_York";
+const USER_AGENT =
+  "Mozilla/5.0 (compatible; WPCNAEventUpdater/1.0; +https://never-nude.github.io/wpcna/)";
+const LIBRARY_LOOKAHEAD_DAYS = 45;
+const CITY_MONTHS_AHEAD = 6;
+const PAST_RETENTION_DAYS = 60;
+const LIBRARY_MAX_REPEAT_COUNT = 2;
+const LIBRARY_MONTHLY_LIMIT = 15;
+
+const LIBRARY_ALWAYS_EXCLUDE_PATTERN =
+  /\b(homework help|video game time|tiny tots|toy time|storytime|vr storytime|vr fun|movie time|movie night|esl|english conversation|english classes|english for beginners|french conversation|low intermediate english|ged|citizenship classes|do gooders|tech tuesday|d&d|puzzle swap|stitching with friends|learn to crochet|crochet|beginner sewing|sewing class|kids yoga|paws to read|salsa for absolute beginners|read and stitch|book discussion|book club|club\b|minecraft|magic: the gathering|edge advisory board|after hours|afterplay|advisory board|scrabble|lego|board of trustees|appointment only|library closed)\b/i;
+
+const LIBRARY_BROAD_INTEREST_PATTERN =
+  /\b(workshop|discussion|open mic|concert|history|genealogy|financial aid|college|housing|discrimination|energy|narcan|interview|poetry|artificial intelligence|a\.i\.|3d printing|public service|county legislators|elder law|leadership|heritage|film screening|future is female|mental health|wellness|earth day|white plains|technology|samuel adams|antoni gaudi|janine antoni|craft-making|children's day|book day|brown bag|excel|google sheets|youth leadership|robert the guitar guy|storybook dancing|common ground)\b/i;
+
+const LIBRARY_HIGH_PRIORITY_PATTERN =
+  /\b(white plains|county|history|financial aid|college|housing|discrimination|energy|narcan|elder law|genealogy|county legislators|leadership|future is female|artificial intelligence|a\.i\.|3d printing|earth day|heritage|public service|interview|concert|film screening|open mic|poetry)\b/i;
+
+const CATEGORY_IMAGES = {
+  "Arts": "/assets/img/events/arts.svg",
+  "Civic": "/assets/img/events/civic.svg",
+  "Community": "/assets/img/events/community.svg",
+  "Family": "/assets/img/events/family.svg",
+  "Food & Downtown": "/assets/img/events/food.svg",
+  "Learning": "/assets/img/events/learning.svg",
+  "Music & Family": "/assets/img/events/music.svg",
+  "Seasonal": "/assets/img/events/seasonal.svg",
+  "Workshop": "/assets/img/events/workshop.svg"
+};
+
+const MONTH_INDEX = {
+  january: 1,
+  february: 2,
+  march: 3,
+  april: 4,
+  may: 5,
+  june: 6,
+  july: 7,
+  august: 8,
+  september: 9,
+  october: 10,
+  november: 11,
+  december: 12
+};
+
+async function main() {
+  const previousAutoEvents = await readJson(AUTO_EVENTS_PATH, []);
+  const previousBySource = groupBySource(previousAutoEvents);
+  const todayParts = getTodayParts();
+  const keepAfter = shiftIsoDate(todayParts.iso, -PAST_RETENTION_DAYS);
+
+  const sourceFetchers = [
+    { id: "library", fetcher: () => fetchLibraryEvents(todayParts) },
+    { id: "city", fetcher: () => fetchCityEvents(todayParts) },
+    { id: "bid", fetcher: () => fetchBidEvents(todayParts) },
+    { id: "wppac", fetcher: () => fetchWppacEvents(todayParts) }
+  ];
+
+  const collected = [];
+  let successfulSources = 0;
+
+  for (const source of sourceFetchers) {
+    const retainedPrevious = retainRecentEvents(previousBySource[source.id] || [], keepAfter, todayParts.iso);
+
+    try {
+      const fresh = await source.fetcher();
+
+      if (!fresh.length) {
+        throw new Error("No events parsed.");
+      }
+
+      successfulSources += 1;
+      collected.push(...mergeWithRetained(fresh, retainedPrevious, keepAfter));
+      console.log(`Imported ${fresh.length} ${source.id} events.`);
+    } catch (error) {
+      console.warn(`Could not refresh ${source.id}: ${error.message}`);
+      collected.push(...retainedPrevious);
+    }
+  }
+
+  if (!successfulSources && !previousAutoEvents.length) {
+    throw new Error("All event sources failed and there is no prior auto-generated dataset to keep.");
+  }
+
+  const deduped = dedupeImportedEvents(collected)
+    .map((event) => normalizeImportedEvent(event, todayParts.iso))
+    .sort(compareEventsForOutput);
+
+  await fs.writeFile(AUTO_EVENTS_PATH, JSON.stringify(deduped, null, 2) + "\n", "utf8");
+  console.log(`Wrote ${deduped.length} auto-managed events to ${path.relative(ROOT, AUTO_EVENTS_PATH)}.`);
+}
+
+function getTodayParts() {
+  const formatted = new Intl.DateTimeFormat("en-CA", {
+    timeZone: TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  })
+    .format(new Date())
+    .replaceAll("/", "-");
+
+  const [year, month, day] = formatted.split("-").map(Number);
+
+  return {
+    iso: formatted,
+    year,
+    month,
+    day
+  };
+}
+
+function shiftIsoDate(isoDate, dayOffset) {
+  const date = new Date(`${isoDate}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + dayOffset);
+  return date.toISOString().slice(0, 10);
+}
+
+async function fetchLibraryEvents(todayParts) {
+  const requestPayload = {
+    private: false,
+    date: todayParts.iso,
+    days: LIBRARY_LOOKAHEAD_DAYS,
+    locations: [],
+    ages: [],
+    types: [],
+    search: ""
+  };
+
+  const url =
+    "https://calendar.whiteplainslibrary.org/eeventcaldata?event_type=0&req=" +
+    encodeURIComponent(JSON.stringify(requestPayload));
+  const items = await fetchJson(url);
+
+  const candidates = items
+    .map((item) => buildLibraryEvent(item, todayParts.iso))
+    .filter(Boolean);
+  const titleCounts = buildTitleCounts(candidates);
+
+  return limitLibraryEventsByMonth(
+    candidates.filter((event) => shouldIncludeLibraryEvent(event, titleCounts)),
+    titleCounts
+  );
+}
+
+function buildLibraryEvent(item, todayIso) {
+  const title = collapseWhitespace(item.title);
+  const start = parseSqlDateTime(item.raw_start_time);
+  const end = parseSqlDateTime(item.raw_end_time);
+  const rawTags = dedupeStrings([
+    ...(Array.isArray(item.tagsArray) ? item.tagsArray : []),
+    ...(Array.isArray(item.agesArray) ? item.agesArray : [])
+  ]);
+
+  if (!title || !start.date) {
+    return null;
+  }
+
+  if (
+    rawTags.some((tag) => /reserved|room rental|\(p\)/i.test(tag)) ||
+    /\broom rental\b/i.test(title)
+  ) {
+    return null;
+  }
+
+  const description = cleanText(item.long_description || item.description || "");
+  const locationParts = [item.location, item.venues].map(cleanText).filter(Boolean);
+  const locationName = locationParts.join(", ");
+  const tags = dedupeStrings([...rawTags, "library"]).map(toTag);
+  const category = categorizeEvent({
+    title,
+    description,
+    organizer: "White Plains Public Library",
+    tags
+  });
+
+  const detailUrl = absoluteUrl(item.url, "https://calendar.whiteplainslibrary.org/");
+  const fullDescription = appendSourceNote(
+    description,
+    "Check the library page for registration, tickets, and any schedule updates."
+  );
+
+  return buildImportedEvent({
+    title,
+    category,
+    shortSummary: buildSummary(description, 160),
+    fullDescription,
+    startDate: start.date,
+    endDate: end.date || start.date,
+    startTime: start.time,
+    endTime: end.time,
+    locationName: locationName || "White Plains Public Library",
+    locationAddress: "100 Martine Avenue, White Plains, NY 10601",
+    image: imageForCategory(category),
+    flyerPdf: null,
+    externalUrl: detailUrl,
+    ctaLabel: "Open library page",
+    featured: false,
+    status: deriveStatus(start.date, end.date || start.date, todayIso),
+    tags,
+    organizer: "White Plains Public Library",
+    sourceUrl: detailUrl,
+    sourceLabel: "Library calendar",
+    importSource: "library"
+  });
+}
+
+function shouldIncludeLibraryEvent(event, titleCounts) {
+  const title = cleanText(event.title).toLowerCase();
+  const haystack = `${event.title} ${event.shortSummary} ${event.fullDescription} ${(event.tags || []).join(" ")}`.toLowerCase();
+  const titleCount = titleCounts.get(title) || 0;
+
+  if (LIBRARY_ALWAYS_EXCLUDE_PATTERN.test(haystack)) {
+    return false;
+  }
+
+  if (titleCount > LIBRARY_MAX_REPEAT_COUNT) {
+    return false;
+  }
+
+  if (event.category === "Civic" || event.category === "Workshop") {
+    return true;
+  }
+
+  return LIBRARY_BROAD_INTEREST_PATTERN.test(haystack);
+}
+
+function limitLibraryEventsByMonth(events, titleCounts) {
+  const grouped = new Map();
+
+  for (const event of events) {
+    const monthKey = event.startDate.slice(0, 7);
+    grouped.set(monthKey, [...(grouped.get(monthKey) || []), event]);
+  }
+
+  return [...grouped.entries()]
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .flatMap(([, monthEvents]) =>
+      monthEvents
+        .sort((a, b) => compareLibraryPriority(a, b, titleCounts))
+        .slice(0, LIBRARY_MONTHLY_LIMIT)
+    );
+}
+
+function compareLibraryPriority(a, b, titleCounts) {
+  const scoreDiff = scoreLibraryEvent(b, titleCounts) - scoreLibraryEvent(a, titleCounts);
+
+  if (scoreDiff !== 0) {
+    return scoreDiff;
+  }
+
+  const dateDiff = `${a.startDate}${a.startTime || "00:00"}`.localeCompare(`${b.startDate}${b.startTime || "00:00"}`);
+  if (dateDiff !== 0) {
+    return dateDiff;
+  }
+
+  return a.title.localeCompare(b.title);
+}
+
+function scoreLibraryEvent(event, titleCounts) {
+  const haystack = `${event.title} ${event.shortSummary} ${event.fullDescription} ${(event.tags || []).join(" ")}`.toLowerCase();
+  const titleCount = titleCounts.get(cleanText(event.title).toLowerCase()) || 0;
+  let score = 0;
+
+  if (event.category === "Workshop") {
+    score += 8;
+  } else if (event.category === "Civic") {
+    score += 7;
+  } else if (event.category === "Learning") {
+    score += 4;
+  } else {
+    score += 3;
+  }
+
+  if (LIBRARY_HIGH_PRIORITY_PATTERN.test(haystack)) {
+    score += 7;
+  }
+
+  if (/\b(white plains|county|local|neighborhood)\b/i.test(haystack)) {
+    score += 3;
+  }
+
+  if (/\b(workshop|discussion|lecture|series|screening|concert|open mic)\b/i.test(haystack)) {
+    score += 2;
+  }
+
+  score -= Math.max(0, titleCount - 1) * 2;
+
+  return score;
+}
+
+async function fetchCityEvents(todayParts) {
+  const months = buildMonthSequence(todayParts, CITY_MONTHS_AHEAD);
+  const collected = [];
+
+  for (const monthEntry of months) {
+    const url = `https://www.cityofwhiteplains.com/Calendar.aspx?month=${monthEntry.month}&year=${monthEntry.year}`;
+    const html = await fetchText(url);
+    const $ = cheerio.load(html);
+
+    $(".detailsTooltip").each((_, tooltip) => {
+      const container = $(tooltip);
+      const title = cleanText(container.find("h3").first().text());
+      const detailsLink = container.find("a[href*='Calendar.aspx?EID=']").first().attr("href");
+      const detailUrl = absoluteUrl(detailsLink, "https://www.cityofwhiteplains.com/");
+
+      if (!title || !detailUrl || /\bcancelled\b|\bno meeting scheduled\b/i.test(title)) {
+        return;
+      }
+
+      const params = new URL(detailUrl).searchParams;
+      const year = params.get("year");
+      const month = params.get("month");
+      const day = params.get("day");
+
+      if (!year || !month || !day) {
+        return;
+      }
+
+      const startDate = `${year}-${padNumber(month)}-${padNumber(day)}`;
+      const timeText = cleanText(container.find("dt").filter((_, dt) => cleanText($(dt).text()) === "When:").next("dd").text());
+      const locationHtml = container.find("dt").filter((_, dt) => cleanText($(dt).text()) === "Location:").next("dd").html() || "";
+      const locationLines = extractHtmlLines(locationHtml);
+      const locationName = locationLines[0] || "White Plains";
+      const locationAddress = locationLines.slice(1).join(", ") || "White Plains, NY";
+      const parsedTimes = parseTimeRange(timeText);
+
+      const description = buildCityDescription(title, locationName, locationAddress);
+      const category = categorizeEvent({
+        title,
+        description,
+        organizer: "City of White Plains",
+        tags: locationLines
+      });
+
+      collected.push(
+        buildImportedEvent({
+          title,
+          category,
+          shortSummary: buildSummary(description, 155),
+          fullDescription: appendSourceNote(
+            description,
+            "Use the official city page for agendas, updates, and any location changes."
+          ),
+          startDate,
+          endDate: startDate,
+          startTime: parsedTimes.startTime,
+          endTime: parsedTimes.endTime,
+          locationName,
+          locationAddress,
+          image: imageForCategory(category),
+          flyerPdf: null,
+          externalUrl: detailUrl,
+          ctaLabel: "Open city page",
+          featured: false,
+          status: deriveStatus(startDate, startDate, todayParts.iso),
+          tags: dedupeStrings(buildCityTags(title, locationLines, category)),
+          organizer: "City of White Plains",
+          sourceUrl: detailUrl,
+          sourceLabel: "City calendar",
+          importSource: "city"
+        })
+      );
+    });
+  }
+
+  return collected;
+}
+
+function buildCityDescription(title, locationName, locationAddress) {
+  const pieces = [`${title} is listed on the official White Plains city calendar.`];
+
+  if (locationName && locationName !== "White Plains") {
+    pieces.push(`It is set for ${locationName}${locationAddress ? `, ${locationAddress}` : ""}.`);
+  } else if (locationAddress) {
+    pieces.push(`It is set for ${locationAddress}.`);
+  }
+
+  return pieces.join(" ");
+}
+
+function buildCityTags(title, locationLines, category) {
+  const haystack = `${title} ${locationLines.join(" ")} ${category}`.toLowerCase();
+  const tags = ["city calendar"];
+
+  if (haystack.includes("meeting")) {
+    tags.push("public meeting");
+  }
+
+  if (haystack.includes("council")) {
+    tags.push("city hall");
+  }
+
+  if (haystack.includes("community center")) {
+    tags.push("community center");
+  }
+
+  if (haystack.includes("mamaroneck")) {
+    tags.push("downtown");
+  }
+
+  return tags.map(toTag);
+}
+
+async function fetchBidEvents(todayParts) {
+  const html = await fetchText("https://wpbid.com/events/");
+  const $ = cheerio.load(html);
+  const collected = [];
+
+  $("article.post-item.event").each((_, article) => {
+    const card = $(article);
+    const title = cleanText(card.find("h2").first().text());
+    const link = absoluteUrl(card.find("h2 a").first().attr("href"), "https://wpbid.com/events/");
+    const excerpt = cleanText(card.find(".excerpt").first().text());
+    const datetime = card.find("time.entry-time").attr("datetime") || "";
+    const timeText = cleanText(card.find(".inner-time").text());
+    const parsedTimes = parseTimeRange(timeText);
+    const startDate = datetime.slice(0, 10);
+
+    if (!title || !link || !startDate) {
+      return;
+    }
+
+    const category = categorizeEvent({
+      title,
+      description: excerpt,
+      organizer: "White Plains Business Improvement District",
+      tags: ["downtown"]
+    });
+    const detail = buildBidDescription(title, excerpt);
+    const location = guessBidLocation(title, excerpt);
+
+    collected.push(
+      buildImportedEvent({
+        title,
+        category,
+        shortSummary: buildSummary(excerpt || detail, 165),
+        fullDescription: appendSourceNote(detail, "Use the BID page for tickets, participating businesses, and weather updates."),
+        startDate,
+        endDate: startDate,
+        startTime: parsedTimes.startTime || datetime.slice(11, 16) || null,
+        endTime: parsedTimes.endTime,
+        locationName: location.name,
+        locationAddress: location.address,
+        image: imageForCategory(category),
+        flyerPdf: null,
+        externalUrl: link,
+        ctaLabel: buildBidCta(title, excerpt),
+        featured: false,
+        status: deriveStatus(startDate, startDate, todayParts.iso),
+        tags: dedupeStrings(["downtown", "bid", ...extractKeywordTags(`${title} ${excerpt}`)]).map(toTag),
+        organizer: "White Plains Business Improvement District",
+        sourceUrl: link,
+        sourceLabel: "White Plains BID",
+        importSource: "bid"
+      })
+    );
+  });
+
+  return collected;
+}
+
+function buildBidDescription(title, excerpt) {
+  if (excerpt) {
+    return excerpt.endsWith("…") || excerpt.endsWith("[…]") ? excerpt.replace(/\[…\]$|…$/u, "").trim() + "." : excerpt;
+  }
+
+  return `${title} is listed on the White Plains BID events calendar.`;
+}
+
+function buildBidCta(title, excerpt) {
+  const haystack = `${title} ${excerpt}`.toLowerCase();
+  if (/\b(ticket|tickets|buy)\b/.test(haystack)) {
+    return "Get tickets";
+  }
+
+  return "Open event page";
+}
+
+function guessBidLocation(title, excerpt) {
+  const haystack = `${title} ${excerpt}`.toLowerCase();
+
+  if (haystack.includes("mamaroneck avenue")) {
+    return {
+      name: "Mamaroneck Avenue Streetscape",
+      address: "Mamaroneck Avenue between Maple Avenue and East Post Road, White Plains, NY 10601"
+    };
+  }
+
+  if (haystack.includes("downtown")) {
+    return {
+      name: "Downtown White Plains",
+      address: "Downtown White Plains, NY 10601"
+    };
+  }
+
+  return {
+    name: "White Plains BID District",
+    address: "Downtown White Plains, NY 10601"
+  };
+}
+
+async function fetchWppacEvents(todayParts) {
+  const html = await fetchText("https://wppac.com/");
+  const $ = cheerio.load(html);
+  const links = dedupeStrings(
+    $("a[href*='https://wppac.com/shows/'], a[href^='/shows/']")
+      .map((_, anchor) => absoluteUrl($(anchor).attr("href"), "https://wppac.com/"))
+      .get()
+      .filter(Boolean)
+  );
+
+  const collected = [];
+
+  for (const link of links) {
+    const showHtml = await fetchText(link);
+    const show = buildWppacEvent(showHtml, link, todayParts);
+
+    if (show) {
+      collected.push(show);
+    }
+  }
+
+  return collected;
+}
+
+function buildWppacEvent(html, link, todayParts) {
+  const $ = cheerio.load(html);
+  const title = cleanText($("h1").first().text());
+
+  if (!title) {
+    return null;
+  }
+
+  const paragraphs = $("p")
+    .map((_, paragraph) => cleanText($(paragraph).text()))
+    .get()
+    .filter(Boolean);
+
+  const aboutText = paragraphs.find((text) => text.length > 120 && !/licensed by|performance schedule|all sales are final/i.test(text));
+  const dateRangeText = paragraphs.find((text) => parseMonthRange(text, todayParts));
+  const dateRange = parseMonthRange(dateRangeText, todayParts);
+
+  if (!dateRange) {
+    return null;
+  }
+
+  const extraNotes = [];
+  const ageNote = paragraphs.find((text) => /recommend/i.test(text));
+  const priceNote = paragraphs.find((text) => /\$\d/.test(text));
+
+  if (ageNote) {
+    extraNotes.push(ageNote);
+  }
+
+  if (priceNote) {
+    extraNotes.push(priceNote);
+  }
+
+  const fullDescription = appendSourceNote(
+    [aboutText, ...extraNotes].filter(Boolean).join(" "),
+    "Use the show page for tickets and the full performance schedule."
+  );
+
+  return buildImportedEvent({
+    title: toTitleCase(title),
+    category: "Arts",
+    shortSummary: buildSummary(aboutText || `${title} is on the schedule at the White Plains Performing Arts Center.`, 165),
+    fullDescription,
+    startDate: dateRange.startDate,
+    endDate: dateRange.endDate,
+    startTime: null,
+    endTime: null,
+    locationName: "White Plains Performing Arts Center",
+    locationAddress: "11 City Place, 3rd Floor, White Plains, NY 10601",
+    image: imageForCategory("Arts"),
+    flyerPdf: null,
+    externalUrl: link,
+    ctaLabel: "Open show page",
+    featured: false,
+    status: deriveStatus(dateRange.startDate, dateRange.endDate, todayParts.iso),
+    tags: dedupeStrings(["performing arts", "theater", ...extractKeywordTags(`${title} ${aboutText || ""}`)]).map(toTag),
+    organizer: "White Plains Performing Arts Center",
+    sourceUrl: link,
+    sourceLabel: "WPPAC",
+    importSource: "wppac"
+  });
+}
+
+function parseMonthRange(text, todayParts) {
+  if (!text) {
+    return null;
+  }
+
+  const normalized = cleanText(text).replace(/[–—]/g, "-");
+  const match = normalized.match(/^([A-Za-z]+)\s+(\d{1,2})\s*-\s*([A-Za-z]+)?\s*(\d{1,2})$/);
+
+  if (!match) {
+    return null;
+  }
+
+  const startMonthName = match[1].toLowerCase();
+  const endMonthName = (match[3] || match[1]).toLowerCase();
+  const startMonth = MONTH_INDEX[startMonthName];
+  const endMonth = MONTH_INDEX[endMonthName];
+
+  if (!startMonth || !endMonth) {
+    return null;
+  }
+
+  let year = todayParts.year;
+  if (startMonth < todayParts.month - 1) {
+    year += 1;
+  }
+
+  let endYear = year;
+  if (endMonth < startMonth) {
+    endYear += 1;
+  }
+
+  return {
+    startDate: `${year}-${padNumber(startMonth)}-${padNumber(match[2])}`,
+    endDate: `${endYear}-${padNumber(endMonth)}-${padNumber(match[4])}`
+  };
+}
+
+function normalizeImportedEvent(event, todayIso) {
+  return {
+    ...event,
+    shortSummary: buildSummary(event.shortSummary || event.fullDescription || event.title, 170),
+    fullDescription: cleanText(event.fullDescription),
+    status: deriveStatus(event.startDate, event.endDate || event.startDate, todayIso),
+    tags: dedupeStrings(event.tags || []).map(toTag)
+  };
+}
+
+function buildImportedEvent(event) {
+  const slugBase = event.slug || `${event.importSource}-${event.title}-${event.startDate}`;
+  return {
+    id: slugify(slugBase),
+    slug: slugify(slugBase),
+    title: cleanText(event.title),
+    category: event.category,
+    shortSummary: cleanText(event.shortSummary),
+    fullDescription: cleanText(event.fullDescription),
+    startDate: event.startDate,
+    endDate: event.endDate || event.startDate,
+    startTime: event.startTime || null,
+    endTime: event.endTime || null,
+    locationName: cleanText(event.locationName),
+    locationAddress: cleanText(event.locationAddress),
+    image: event.image,
+    flyerPdf: event.flyerPdf || null,
+    externalUrl: event.externalUrl || null,
+    ctaLabel: event.ctaLabel || "Get info",
+    featured: Boolean(event.featured),
+    status: event.status,
+    tags: dedupeStrings(event.tags || []).map(toTag),
+    organizer: cleanText(event.organizer),
+    sourceUrl: event.sourceUrl || event.externalUrl || null,
+    sourceLabel: event.sourceLabel || "Original source",
+    importSource: event.importSource
+  };
+}
+
+function deriveStatus(startDate, endDate, todayIso) {
+  return (endDate || startDate) < todayIso ? "past" : "upcoming";
+}
+
+function compareEventsForOutput(a, b) {
+  const left = `${a.startDate}${a.startTime || "00:00"}${a.title}`;
+  const right = `${b.startDate}${b.startTime || "00:00"}${b.title}`;
+  return left.localeCompare(right);
+}
+
+function retainRecentEvents(events, keepAfter, todayIso) {
+  return events.filter((event) => {
+    const endDate = event.endDate || event.startDate;
+    return endDate >= keepAfter && endDate < todayIso;
+  });
+}
+
+function mergeWithRetained(freshEvents, previousEvents, keepAfter) {
+  const merged = dedupeImportedEvents([...previousEvents, ...freshEvents]);
+  return merged.filter((event) => (event.endDate || event.startDate) >= keepAfter);
+}
+
+function dedupeImportedEvents(events) {
+  const deduped = [];
+  const keyToIndex = new Map();
+
+  for (const event of events) {
+    const keys = importedEventKeys(event);
+    const existingIndex = keys.find((key) => keyToIndex.has(key));
+
+    if (existingIndex) {
+      const dedupedIndex = keyToIndex.get(existingIndex);
+      deduped[dedupedIndex] = event;
+
+      for (const key of keys) {
+        keyToIndex.set(key, dedupedIndex);
+      }
+
+      continue;
+    }
+
+    const nextIndex = deduped.push(event) - 1;
+
+    for (const key of keys) {
+      keyToIndex.set(key, nextIndex);
+    }
+  }
+
+  return deduped;
+}
+
+function buildTitleCounts(events) {
+  return events.reduce((counts, event) => {
+    const title = cleanText(event.title).toLowerCase();
+    counts.set(title, (counts.get(title) || 0) + 1);
+    return counts;
+  }, new Map());
+}
+
+function importedEventKeys(event) {
+  const keys = [];
+  const baseTitle = cleanText(event.title).toLowerCase();
+  const startDate = event.startDate || "";
+  const locationName = cleanText(event.locationName || "").toLowerCase();
+
+  if (event.id) {
+    keys.push(`id:${event.id}`);
+  }
+
+  if (event.slug) {
+    keys.push(`slug:${event.slug}`);
+  }
+
+  for (const url of [event.externalUrl, event.sourceUrl]) {
+    const normalizedUrl = normalizeUrl(url);
+    if (normalizedUrl) {
+      keys.push(`url:${normalizedUrl}`);
+    }
+  }
+
+  if (baseTitle && startDate) {
+    keys.push(`title:${baseTitle}|${startDate}|${locationName}`);
+  }
+
+  return dedupeStrings(keys);
+}
+
+function groupBySource(events) {
+  return events.reduce((accumulator, event) => {
+    const source = event.importSource || "manual";
+    accumulator[source] = accumulator[source] || [];
+    accumulator[source].push(event);
+    return accumulator;
+  }, {});
+}
+
+function imageForCategory(category) {
+  return CATEGORY_IMAGES[category] || CATEGORY_IMAGES.Community;
+}
+
+function categorizeEvent({ title = "", description = "", organizer = "", tags = [] }) {
+  const haystack = `${title} ${description} ${organizer} ${tags.join(" ")}`.toLowerCase();
+
+  if (/\b(council|board|commission|agency|committee|work session|meeting|public hearing|vision zero|zoning|planning)\b/.test(haystack)) {
+    return "Civic";
+  }
+
+  if (/\b(workshop|speaker|training|seminar|clinic)\b/.test(haystack)) {
+    return "Workshop";
+  }
+
+  if (/\b(steam|library|book|author|conversation|learn|education|class|school budget|lecture)\b/.test(haystack)) {
+    return "Learning";
+  }
+
+  if (/\b(theater|theatre|musical|show|broadway|performing arts|actors)\b/.test(haystack)) {
+    return "Arts";
+  }
+
+  if (/\b(concert|music|band|rock the block)\b/.test(haystack)) {
+    return "Music & Family";
+  }
+
+  if (/\b(wing walk|market|food|restaurant|downtown|oktoberfest|block-toberfest)\b/.test(haystack)) {
+    return "Food & Downtown";
+  }
+
+  if (/\b(parade|egg hunt|kids|children|families|family)\b/.test(haystack)) {
+    return "Family";
+  }
+
+  return "Community";
+}
+
+function extractKeywordTags(text) {
+  const haystack = (text || "").toLowerCase();
+  const tags = [];
+  const patterns = [
+    "tickets",
+    "free",
+    "family",
+    "kids",
+    "downtown",
+    "music",
+    "theater",
+    "library",
+    "public meeting",
+    "registration required"
+  ];
+
+  for (const pattern of patterns) {
+    if (haystack.includes(pattern)) {
+      tags.push(pattern);
+    }
+  }
+
+  return tags;
+}
+
+function buildSummary(text, maxLength) {
+  const cleaned = cleanText(text);
+
+  if (!cleaned) {
+    return "";
+  }
+
+  const sentenceMatch = cleaned.match(/^.{1,170}?[.!?](?=\s|$)/);
+
+  if (sentenceMatch && sentenceMatch[0].length <= maxLength && sentenceMatch[0].trim().length > 20) {
+    return sentenceMatch[0].trim();
+  }
+
+  if (cleaned.length <= maxLength) {
+    return cleaned;
+  }
+
+  const clipped = cleaned.slice(0, maxLength - 1);
+  const lastSpace = clipped.lastIndexOf(" ");
+  return `${(lastSpace > 0 ? clipped.slice(0, lastSpace) : clipped).trim()}…`;
+}
+
+function appendSourceNote(text, note) {
+  const cleaned = cleanText(text);
+  if (!cleaned) {
+    return note;
+  }
+
+  if (cleaned.includes(note)) {
+    return cleaned;
+  }
+
+  return `${cleaned} ${note}`;
+}
+
+function extractHtmlLines(html) {
+  if (!html) {
+    return [];
+  }
+
+  const $ = cheerio.load(`<div>${html}</div>`);
+  const lines = $("p")
+    .map((_, paragraph) => cleanText($(paragraph).text()))
+    .get()
+    .filter(Boolean);
+
+  if (lines.length) {
+    return lines;
+  }
+
+  return cleanText($.text())
+    .split(",")
+    .map((part) => cleanText(part))
+    .filter(Boolean);
+}
+
+function parseSqlDateTime(value) {
+  if (!value) {
+    return { date: null, time: null };
+  }
+
+  const match = value.match(/^(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2})/);
+
+  if (!match) {
+    return { date: null, time: null };
+  }
+
+  return {
+    date: match[1],
+    time: match[2]
+  };
+}
+
+function parseTimeRange(value) {
+  const normalized = cleanText(value).replace(/[–—]/g, "-");
+
+  if (!normalized) {
+    return { startTime: null, endTime: null };
+  }
+
+  const segments = normalized.split(/\s*-\s*/);
+
+  if (segments.length >= 2) {
+    return {
+      startTime: parseTime(segments[0]),
+      endTime: parseTime(segments[1])
+    };
+  }
+
+  return {
+    startTime: parseTime(normalized),
+    endTime: null
+  };
+}
+
+function parseTime(value) {
+  const normalized = cleanText(value).toLowerCase().replaceAll(".", "");
+
+  if (!normalized) {
+    return null;
+  }
+
+  if (normalized === "noon") {
+    return "12:00";
+  }
+
+  if (normalized === "midnight") {
+    return "00:00";
+  }
+
+  const match = normalized.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)/);
+
+  if (!match) {
+    return null;
+  }
+
+  let hour = Number(match[1]);
+  const minutes = match[2] || "00";
+
+  if (match[3] === "pm" && hour !== 12) {
+    hour += 12;
+  }
+
+  if (match[3] === "am" && hour === 12) {
+    hour = 0;
+  }
+
+  return `${String(hour).padStart(2, "0")}:${minutes}`;
+}
+
+function buildMonthSequence(todayParts, count) {
+  return Array.from({ length: count }, (_, index) => {
+    const date = new Date(Date.UTC(todayParts.year, todayParts.month - 1 + index, 1));
+    return {
+      year: date.getUTCFullYear(),
+      month: date.getUTCMonth() + 1
+    };
+  });
+}
+
+async function readJson(filePath, fallbackValue) {
+  try {
+    const text = await fs.readFile(filePath, "utf8");
+    return JSON.parse(text);
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      return fallbackValue;
+    }
+
+    throw error;
+  }
+}
+
+async function fetchJson(url) {
+  const response = await fetch(url, {
+    headers: {
+      "user-agent": USER_AGENT,
+      accept: "application/json,text/plain;q=0.9,*/*;q=0.8"
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Request failed with ${response.status} for ${url}`);
+  }
+
+  return response.json();
+}
+
+async function fetchText(url) {
+  const response = await fetch(url, {
+    headers: {
+      "user-agent": USER_AGENT,
+      accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Request failed with ${response.status} for ${url}`);
+  }
+
+  return response.text();
+}
+
+function absoluteUrl(value, base) {
+  if (!value) {
+    return null;
+  }
+
+  const normalized = value.startsWith("//") ? `https:${value}` : value;
+  const url = new URL(normalized, base);
+  url.pathname = url.pathname.replace(/\/{2,}/g, "/");
+  return url.toString();
+}
+
+function normalizeUrl(value) {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    const url = new URL(value);
+    return url.toString().replace(/\/$/, "");
+  } catch {
+    return null;
+  }
+}
+
+function cleanText(value) {
+  return collapseWhitespace(
+    String(value || "")
+      .replace(/<[^>]+>/g, " ")
+      .replaceAll("&nbsp;", " ")
+      .replaceAll("&thinsp;", " ")
+      .replace(/\u00a0/g, " ")
+  );
+}
+
+function collapseWhitespace(value) {
+  return String(value || "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function dedupeStrings(values) {
+  return [...new Set(values.filter(Boolean))];
+}
+
+function padNumber(value) {
+  return String(value).padStart(2, "0");
+}
+
+function slugify(value) {
+  return cleanText(value)
+    .toLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function toTag(value) {
+  return cleanText(value)
+    .toLowerCase()
+    .replace(/^#/, "");
+}
+
+function toTitleCase(value) {
+  return cleanText(value)
+    .toLowerCase()
+    .replace(/\b([a-z])/g, (match) => match.toUpperCase())
+    .replace(/\bTba\b/g, "TBA")
+    .replace(/\bWppac\b/g, "WPPAC");
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});

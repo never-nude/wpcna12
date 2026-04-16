@@ -1,0 +1,127 @@
+---
+layout: layouts/base.njk
+title: White Plains Neighborhood & Civic Hub
+metaDescription: WPCNA is a neighborhood-centered civic hub for White Plains — connecting residents to local events, neighborhood life, and community information.
+---
+{% from "components/macros.njk" import eventCard, neighborhoodCard, resourceCard %}
+
+<section class="hero">
+  <img src="{{ site.heroImage | withPrefix }}" alt="{{ site.heroImageAlt }}" loading="eager">
+  <div class="hero-overlay">
+    <div class="wrap">
+      <p class="eyebrow">White Plains Council of Neighborhood Associations</p>
+      <h1>Your neighborhood civic hub</h1>
+      <p>{{ site.mission }}</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="{{ '/events/' | withPrefix }}">What's happening</a>
+        <a class="btn btn-outline" href="{{ '/neighborhoods/' | withPrefix }}">Neighborhoods</a>
+      </div>
+      <ul class="hero-stats">
+        <li><span>Upcoming</span><strong>{{ eventStore.upcoming.length }} events</strong></li>
+        <li><span>Neighborhoods</span><strong>{{ neighborhoodStore.count }}</strong></li>
+        <li><span>Sources</span><strong>City, Library, BID, WPPAC</strong></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="section-header">
+      <div>
+        <p class="eyebrow">About WPCNA</p>
+        <h2>Neighborhood voices, citywide view</h2>
+        <p><strong>WPCNA</strong> &mdash; the <strong>White Plains Council of Neighborhood Associations</strong> &mdash; is a volunteer council of neighborhood-association representatives from across the city. {{ site.purpose }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section-alt">
+  <div class="wrap">
+    <div class="section-header">
+      <div>
+        <p class="eyebrow">Neighborhoods</p>
+        <h2>Explore White Plains</h2>
+        <p>{{ neighborhoodStore.count }} neighborhoods from Downtown to Saxon Woods.</p>
+      </div>
+      <a class="link-arrow" href="{{ '/neighborhoods/' | withPrefix }}">All neighborhoods</a>
+    </div>
+    <div class="carousel-header">
+      <span class="archive-count">{{ neighborhoodStore.count }} neighborhoods</span>
+      <div class="carousel-controls">
+        <button class="carousel-btn" type="button" data-carousel-prev aria-label="Previous">&larr;</button>
+        <button class="carousel-btn" type="button" data-carousel-next aria-label="Next">&rarr;</button>
+      </div>
+    </div>
+    <div class="carousel-track" data-carousel-track>
+      {% for neighborhood in neighborhoodStore.all %}
+        {{ neighborhoodCard(neighborhood) }}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="section-header">
+      <div>
+        <p class="eyebrow">What's Happening</p>
+        <h2>Upcoming events</h2>
+        <p>A curated selection of public meetings, civic events, downtown happenings, and neighborhood programs.</p>
+      </div>
+      <a class="link-arrow" href="{{ '/events/' | withPrefix }}">All events</a>
+    </div>
+
+    {% if eventStore.homeUpcoming.length %}
+      <div class="card-grid">
+        {% for event in eventStore.homeUpcoming %}
+          {{ eventCard(event, true) }}
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <h3>No upcoming events right now.</h3>
+        <p>Check back soon or browse past events.</p>
+        <a class="btn btn-primary" href="{{ '/events/' | withPrefix }}">Browse events</a>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+<section class="section section-alt">
+  <div class="wrap">
+    <div class="section-header">
+      <div>
+        <p class="eyebrow">Quick Links</p>
+        <h2>Useful pages</h2>
+        <p>Pages residents tend to use again and again.</p>
+      </div>
+    </div>
+    <div class="card-grid card-grid-2">
+      {% for resource in resources %}
+        {{ resourceCard(resource) }}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="spotlight">
+      <div>
+        <p class="eyebrow">Get Involved</p>
+        <h2>Attend a meeting</h2>
+        <p>{{ site.meetingNote }}</p>
+        <p style="margin-top:1rem"><a class="btn btn-primary" href="{{ '/about/' | withPrefix }}">About WPCNA</a></p>
+      </div>
+      <div class="spotlight-card">
+        <p class="eyebrow">Contact</p>
+        <h3>Contact WPCNA</h3>
+        <p>{{ site.location }}</p>
+        <p>Questions, neighborhood news, or community information? Get in touch.</p>
+        <a class="btn btn-outline" href="{{ '/about/#contact-form' | withPrefix }}" style="margin-top:0.75rem">Get in touch</a>
+      </div>
+    </div>
+  </div>
+</section>

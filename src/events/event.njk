@@ -1,0 +1,131 @@
+---
+pagination:
+  data: eventStore.all
+  size: 1
+  alias: event
+permalink: "events/{{ event.slug }}/index.html"
+layout: layouts/base.njk
+eleventyComputed:
+  title: "{{ event.title }}"
+  metaDescription: "{{ event.shortSummary }}"
+  ogType: "article"
+---
+<section class="page-hero">
+  <div class="wrap">
+    <a class="back-link" href="{{ '/events/' | withPrefix }}">Events</a>
+    <p class="eyebrow">{{ event.category }}</p>
+    <h1>{{ event.title }}</h1>
+    <p>{{ event.shortSummary }}</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="detail-grid">
+      <article class="detail-main">
+        {% if event.displayImage %}
+          <div style="border-radius:var(--radius-lg);overflow:hidden;margin-bottom:1.5rem">
+            <img src="{{ event.displayImage | withPrefix }}" alt="" loading="eager">
+          </div>
+        {% endif %}
+
+        <div class="detail-meta">
+          <span class="tag">{{ event.category }}</span>
+          <span style="font-size:0.85rem;color:var(--ink-muted)">{{ event.organizer }}</span>
+          {% if event.status == "past" %}
+            <span class="tag tag-muted">Past event</span>
+          {% endif %}
+        </div>
+
+        <h2>About this event</h2>
+        {{ event.fullDescription | paragraphs | safe }}
+
+        {% if event.secondaryLinks.length %}
+          <div class="detail-links">
+            <h3>More links</h3>
+            <ul>
+              {% for link in event.secondaryLinks %}
+                {% set linkExternal = link.url.startsWith("http") %}
+                <li><a href="{{ link.url if linkExternal else (link.url | withPrefix) }}"{% if linkExternal %} target="_blank" rel="noopener"{% endif %}>{{ link.label }}</a></li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+      </article>
+
+      <aside class="detail-sidebar">
+        <div class="sidebar-card">
+          <p class="eyebrow">At a Glance</p>
+          <dl>
+            <div><dt>Status</dt><dd>{% if event.status == "upcoming" %}Upcoming{% else %}Past{% endif %}</dd></div>
+            <div><dt>Date</dt><dd>{{ event | dateLabel }}</dd></div>
+            <div><dt>Time</dt><dd>{{ event | timeLabel }}</dd></div>
+            <div><dt>Location</dt><dd>{{ event.locationName }}</dd></div>
+            <div><dt>Address</dt><dd>{{ event.locationAddress }}</dd></div>
+            <div><dt>Source</dt><dd>{{ event.sourceLabel }}</dd></div>
+          </dl>
+          {% if event.primaryAction %}
+            {% set paUrl = event.primaryAction.url %}
+            {% set paExternal = paUrl.startsWith("http") %}
+            <a class="btn btn-primary btn-block" href="{{ paUrl if paExternal else (paUrl | withPrefix) }}"{% if paExternal %} target="_blank" rel="noopener"{% endif %}>{{ event.primaryAction.label }}</a>
+          {% endif %}
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+{% if event.relatedEvents.length %}
+  {% from "components/macros.njk" import eventCard %}
+  <section class="section section-alt">
+    <div class="wrap">
+      <div class="section-header">
+        <div>
+          <p class="eyebrow">More Events</p>
+          <h2>Related events</h2>
+        </div>
+      </div>
+      <div class="card-grid">
+        {% for related in event.relatedEvents %}
+          {{ eventCard(related) }}
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+{% endif %}
+
+{% set startDateValue = event.startDate %}
+{% if event.startTime %}
+  {% set startDateValue = event.startDate + "T" + event.startTime + ":00-04:00" %}
+{% endif %}
+{% set endDateBase = event.endDate or event.startDate %}
+{% set endDateValue = endDateBase %}
+{% if event.endTime %}
+  {% set endDateValue = endDateBase + "T" + event.endTime + ":00-04:00" %}
+{% endif %}
+{% set eventStatusUrl = "https://schema.org/EventCompleted" %}
+{% if event.status == "upcoming" %}
+  {% set eventStatusUrl = "https://schema.org/EventScheduled" %}
+{% endif %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Event",
+  "name": {{ event.title | json | safe }},
+  "description": {{ event.shortSummary | json | safe }},
+  "startDate": {{ startDateValue | json | safe }},
+  "endDate": {{ endDateValue | json | safe }},
+  "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+  "eventStatus": {{ eventStatusUrl | json | safe }},
+  "location": {
+    "@type": "Place",
+    "name": {{ event.locationName | json | safe }},
+    "address": {{ event.locationAddress | json | safe }}
+  },
+  "organizer": {
+    "@type": "Organization",
+    "name": {{ event.organizer | json | safe }}
+  },
+  "url": {{ (page.url | absoluteUrl(site.baseUrl)) | json | safe }}
+}
+</script>

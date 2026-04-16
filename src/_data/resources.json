@@ -1,0 +1,23 @@
+[
+  {
+    "title": "Meeting agendas & minutes",
+    "summary": "The best place to keep up with what WPCNA is discussing each month.",
+    "url": "/agendas/",
+    "ctaLabel": "See agendas",
+    "eyebrow": "WPCNA"
+  },
+  {
+    "title": "CNA Workshop Handbook",
+    "summary": "A practical guide for residents looking to start, revive, or strengthen a neighborhood association.",
+    "url": "/workshops/",
+    "ctaLabel": "Get the handbook",
+    "eyebrow": "WPCNA"
+  },
+  {
+    "title": "Neighborhood map",
+    "summary": "A simple map of the neighborhoods that make up White Plains.",
+    "url": "/neighborhood-map/",
+    "ctaLabel": "Open map",
+    "eyebrow": "White Plains"
+  }
+]

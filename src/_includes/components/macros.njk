@@ -1,0 +1,68 @@
+{% macro eventCard(event, featured=false) %}
+  <article
+    class="event-card"
+    data-event-card
+    data-category="{{ event.category }}"
+    data-month="{{ event.monthKey }}"
+    data-status="{{ event.status }}"
+    data-search="{{ event.searchText }}"
+  >
+    {% if featured and event.displayImage %}
+      <a class="event-card-img" href="{{ event.detailUrl | withPrefix }}" aria-hidden="true" tabindex="-1">
+        <img src="{{ event.displayImage | withPrefix }}" alt="" loading="lazy">
+      </a>
+    {% endif %}
+    <div class="event-card-body">
+      <div class="event-card-top">
+        <span class="tag">{{ event.category }}</span>
+        {% if event.status == "past" %}
+          <span class="tag tag-muted">Past</span>
+        {% endif %}
+      </div>
+      <h3><a href="{{ event.detailUrl | withPrefix }}">{{ event.title }}</a></h3>
+      <p class="event-card-date">{{ event | shortDateLabel }}</p>
+      <div class="event-card-meta">
+        <span>{{ event | timeLabel }}</span>
+        <span>{{ event.locationName }}</span>
+      </div>
+      <p class="event-card-summary">{{ event.shortSummary }}</p>
+      <div class="event-card-actions">
+        {% if event.primaryAction %}
+          {% set actionUrl = event.primaryAction.url %}
+          {% set isExternalAction = actionUrl.startsWith("http") %}
+          <a class="btn btn-primary" href="{{ actionUrl if isExternalAction else (actionUrl | withPrefix) }}"{% if isExternalAction %} target="_blank" rel="noopener"{% endif %}>{{ event.primaryAction.label }}</a>
+        {% endif %}
+        <a class="link-arrow" href="{{ event.detailUrl | withPrefix }}">Details</a>
+      </div>
+    </div>
+  </article>
+{% endmacro %}
+
+{% macro resourceCard(resource) %}
+  {% set isExternal = resource.url.startsWith("http") %}
+  {% set href = resource.url if isExternal else (resource.url | withPrefix) %}
+  <article class="resource-card">
+    <p class="eyebrow">{{ resource.eyebrow }}</p>
+    <h3>{{ resource.title }}</h3>
+    <p>{{ resource.summary }}</p>
+    <a class="link-arrow" href="{{ href }}"{% if isExternal %} target="_blank" rel="noopener"{% endif %}>{{ resource.ctaLabel }}</a>
+  </article>
+{% endmacro %}
+
+{% macro neighborhoodCard(neighborhood, compact=true) %}
+  <article class="neighborhood-card">
+    <a href="{{ neighborhood.detailUrl | withPrefix }}">
+      {% if neighborhood.hero %}
+        <span class="neighborhood-card-img">
+          <img src="{{ (neighborhood.hero.cardImagePath or neighborhood.hero.imagePath) | withPrefix }}" alt="{{ neighborhood.hero.cardAltText or neighborhood.hero.altText }}" loading="lazy">
+        </span>
+      {% endif %}
+      <span class="neighborhood-card-body">
+        <p class="neighborhood-card-group">{{ neighborhood.group }}</p>
+        <h3>{{ neighborhood.name }}</h3>
+        <p class="neighborhood-card-teaser">{{ neighborhood.teaser }}</p>
+        <span class="neighborhood-card-cta">View neighborhood</span>
+      </span>
+    </a>
+  </article>
+{% endmacro %}
