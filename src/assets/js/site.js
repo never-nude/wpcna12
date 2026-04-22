@@ -106,19 +106,12 @@ if (homeCarousel) {
 
   const showSlide = (nextIndex) => {
     activeIndex = (nextIndex + slides.length) % slides.length;
-    const prevIndex = slides.length > 2 ? (activeIndex - 1 + slides.length) % slides.length : -1;
-    const nextVisibleIndex = slides.length > 1 ? (activeIndex + 1) % slides.length : -1;
 
     slides.forEach((slide, index) => {
       const isActive = index === activeIndex;
-      const isPrev = index === prevIndex;
-      const isNext = index === nextVisibleIndex && index !== prevIndex;
-      const isVisible = isActive || isPrev || isNext;
 
-      slide.hidden = !isVisible;
+      slide.hidden = !isActive;
       slide.classList.toggle("is-active", isActive);
-      slide.classList.toggle("is-prev", isPrev);
-      slide.classList.toggle("is-next", isNext);
       slide.setAttribute("aria-hidden", String(!isActive));
     });
 
