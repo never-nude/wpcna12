@@ -3,7 +3,6 @@ layout: layouts/base.njk
 title: About WPCNA
 metaDescription: Learn what WPCNA is and how it helps connect neighborhoods across White Plains.
 ---
-{% from "components/macros.njk" import resourceCard %}
 
 <section class="page-hero">
   <div class="wrap">
@@ -15,61 +14,71 @@ metaDescription: Learn what WPCNA is and how it helps connect neighborhoods acro
 
 <section class="section">
   <div class="wrap">
-    <div class="about-grid">
-      <article class="about-copy">
-        <h2>What WPCNA does</h2>
-        <p>The White Plains Council of Neighborhood Associations brings neighborhood associations together, shares civic information, and gives residents a place to follow citywide issues through a neighborhood lens.</p>
-        <blockquote class="mission-quote">WPCNA works to enhance quality of life in White Plains neighborhoods by sharing information, encouraging local action, and advising public officials.</blockquote>
+    <div class="about-overview">
+      <div class="about-intro">
+        <p class="eyebrow">What WPCNA does</p>
+        <h2>Neighborhood connection, practical civic information</h2>
+        <p>The White Plains Council of Neighborhood Associations brings neighborhood associations together, shares civic information, and helps residents follow citywide issues through a neighborhood lens.</p>
+      </div>
 
-        <h2>How residents use this site</h2>
-        <p>Use this site to find neighborhood-relevant events, neighborhood profiles, WPCNA agendas, meeting materials, and ways to submit community-serving updates.</p>
-        <p>Questions about WPCNA, neighborhood associations, or site content can go through the contact form.</p>
+      <figure class="about-photo">
+        <img src="{{ site.aboutImage | withPrefix }}" alt="{{ site.aboutImageAlt }}" loading="lazy">
+      </figure>
+    </div>
+
+    <div class="about-card-grid">
+      <article class="about-card">
+        <p class="eyebrow">Council role</p>
+        <h3>Sharing information and encouraging local action</h3>
+        <p>WPCNA works to enhance quality of life in White Plains neighborhoods by helping residents, neighborhood associations, and public officials stay connected.</p>
       </article>
 
-      <div>
-        <figure class="about-photo">
-          <img src="{{ site.aboutImage | withPrefix }}" alt="{{ site.aboutImageAlt }}" loading="lazy">
-        </figure>
+      <article class="about-card">
+        <p class="eyebrow">Using this site</p>
+        <h3>Find what residents need quickly</h3>
+        <p>Use the site for neighborhood-relevant events, neighborhood profiles, WPCNA agendas, meeting materials, and ways to submit community-serving updates.</p>
+      </article>
+    </div>
 
-        <div class="sidebar-card" id="contact-form">
-          <p class="eyebrow">Contact</p>
-          <h3>Get in touch</h3>
-          <p>Send questions, corrections, or neighborhood news.</p>
-          <form class="contact-form" action="{{ site.contactFormAction }}" method="POST">
-            <input type="hidden" name="_subject" value="{{ site.contactFormSubject }}">
-            <input type="hidden" name="_captcha" value="false">
-            <input type="hidden" name="_template" value="table">
+    <div class="about-support-grid">
+      <div class="sidebar-card" id="contact-form">
+        <p class="eyebrow">Contact</p>
+        <h3>Get in touch</h3>
+        <p>Send questions, corrections, or neighborhood news.</p>
+        <form class="contact-form" action="{{ site.contactFormAction }}" method="POST">
+          <input type="hidden" name="_subject" value="{{ site.contactFormSubject }}">
+          <input type="hidden" name="_captcha" value="false">
+          <input type="hidden" name="_template" value="table">
 
-            <div class="form-field">
-              <label for="contact-name">Name</label>
-              <input id="contact-name" name="name" type="text" autocomplete="name" required>
-            </div>
+          <div class="form-field">
+            <label for="contact-name">Name</label>
+            <input id="contact-name" name="name" type="text" autocomplete="name" required>
+          </div>
 
-            <div class="form-field">
-              <label for="contact-email">Email</label>
-              <input id="contact-email" name="email" type="email" autocomplete="email" required>
-            </div>
+          <div class="form-field">
+            <label for="contact-email">Email</label>
+            <input id="contact-email" name="email" type="email" autocomplete="email" required>
+          </div>
 
-            <div class="form-field">
-              <label for="contact-subject">Subject</label>
-              <input id="contact-subject" name="topic" type="text" required>
-            </div>
+          <div class="form-field">
+            <label for="contact-subject">Subject</label>
+            <input id="contact-subject" name="topic" type="text" required>
+          </div>
 
-            <div class="form-field">
-              <label for="contact-message">Message</label>
-              <textarea id="contact-message" name="message" rows="6" required></textarea>
-            </div>
+          <div class="form-field">
+            <label for="contact-message">Message</label>
+            <textarea id="contact-message" name="message" rows="6" required></textarea>
+          </div>
 
-            <button class="btn btn-primary btn-block" type="submit">Send message</button>
-          </form>
-        </div>
+          <button class="btn btn-primary btn-block" type="submit">Send message</button>
+        </form>
+      </div>
 
-        <div class="sidebar-card" style="margin-top:1.5rem">
-          <p class="eyebrow">How WPCNA works</p>
-          <h3>By-laws and committees</h3>
-          <p>The archived WPCNA site also pointed residents to the council's by-laws and committee work. Those pieces help give neighborhood associations a structure for sharing information, tracking issues, and taking on citywide topics together.</p>
-          <p>If you need help finding governance materials or want to ask how WPCNA is organized, use the contact form and the council can point you in the right direction.</p>
-        </div>
+      <div class="sidebar-card about-note-card">
+        <p class="eyebrow">How WPCNA works</p>
+        <h3>By-laws and committees</h3>
+        <p>WPCNA's by-laws and committee work give neighborhood associations a structure for sharing information, tracking issues, and coordinating on citywide topics.</p>
+        <p>Use the contact form if you need help finding governance materials or want to ask how the council is organized.</p>
       </div>
     </div>
   </div>
