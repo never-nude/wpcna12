@@ -1283,25 +1283,93 @@ h3 { font-size: clamp(1.15rem, 2vw, 1.35rem); }
 .sidebar-secondary li + li { margin-top: 0.35rem; }
 
 /* ─── About ─── */
-.about-overview {
+.about-page-hero {
+  background: var(--surface);
+}
+
+.about-hero-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(320px, 0.72fr);
-  gap: 2.5rem;
+  gap: 3rem;
   align-items: center;
 }
 
-.about-intro p,
+.about-hero-copy {
+  max-width: 48rem;
+}
+
+.about-hero-copy p,
+.about-section-header p,
 .about-card p,
-.about-note-card p {
+.about-site-help p,
+.about-governance p,
+.about-contact-copy p {
   color: var(--ink-secondary);
   line-height: 1.65;
 }
 
+.about-hero-copy .about-lead {
+  color: var(--ink);
+  font-size: clamp(1.08rem, 1.55vw, 1.26rem);
+  line-height: 1.55;
+}
+
+.about-page-section {
+  padding-top: 3.5rem;
+}
+
+.about-story {
+  display: grid;
+  gap: 3.25rem;
+}
+
+.about-mission {
+  padding: clamp(1.5rem, 3vw, 2.25rem);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.about-mission h2 {
+  margin-bottom: 0.85rem;
+}
+
+.about-mission blockquote {
+  margin: 0;
+}
+
+.about-mission blockquote p {
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(1.08rem, 1.55vw, 1.32rem);
+  line-height: 1.65;
+}
+
+.about-attribution {
+  margin: 1rem 0 0;
+  color: var(--ink-muted);
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.about-story-block {
+  min-width: 0;
+}
+
+.about-section-header {
+  max-width: 52rem;
+  margin-bottom: 1.5rem;
+}
+
 .about-card-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1.25rem;
-  margin-top: 1.5rem;
+}
+
+.about-card-grid-three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .about-card {
@@ -1316,12 +1384,82 @@ h3 { font-size: clamp(1.15rem, 2vw, 1.35rem); }
   margin-bottom: 0.45rem;
 }
 
-.about-support-grid {
+.about-site-help {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(300px, 0.75fr);
-  gap: 1.5rem;
+  grid-template-columns: minmax(0, 0.9fr) minmax(300px, 1fr);
+  gap: 2rem;
+  align-items: center;
+  padding: clamp(1.5rem, 3vw, 2rem);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+
+.about-site-help-copy {
+  max-width: 40rem;
+}
+
+.about-list-card {
+  padding: 1.35rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-alt);
+}
+
+.about-resource-list {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.about-resource-list li {
+  position: relative;
+  padding-left: 1.4rem;
+  color: var(--ink-secondary);
+  line-height: 1.5;
+}
+
+.about-resource-list li::before {
+  content: "";
+  position: absolute;
+  top: 0.62rem;
+  left: 0;
+  width: 0.46rem;
+  height: 0.46rem;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.about-governance {
+  max-width: 52rem;
+  padding-left: 1.25rem;
+  border-left: 3px solid var(--accent);
+}
+
+.about-contact-section {
+  display: grid;
+  grid-template-columns: minmax(0, 0.7fr) minmax(320px, 0.9fr);
+  gap: 2rem;
   align-items: start;
-  margin-top: 1.5rem;
+  padding: clamp(1.5rem, 3vw, 2rem);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--brand-soft);
+}
+
+.about-contact-copy {
+  max-width: 32rem;
+}
+
+.about-contact-card {
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.about-contact-card .contact-form {
+  margin-top: 0;
 }
 
 .plain-list {
@@ -1881,9 +2019,10 @@ h3 { font-size: clamp(1.15rem, 2vw, 1.35rem); }
 /* ─── Responsive ─── */
 @media (max-width: 900px) {
   .detail-grid,
-  .about-overview,
-  .about-card-grid,
-  .about-support-grid,
+  .about-hero-grid,
+  .about-card-grid-three,
+  .about-site-help,
+  .about-contact-section,
   .ask-shell { grid-template-columns: 1fr; }
   .spotlight { grid-template-columns: 1fr; }
   .home-about-card { grid-template-columns: 1fr; gap: 1.5rem; }
@@ -1959,6 +2098,24 @@ h3 { font-size: clamp(1.15rem, 2vw, 1.35rem); }
     padding: 1rem;
   }
 
+  .about-page-hero {
+    padding: 2rem 0;
+  }
+
+  .about-story {
+    gap: 2.25rem;
+  }
+
+  .about-mission,
+  .about-site-help,
+  .about-contact-section {
+    padding: 1.25rem;
+  }
+
+  .about-governance {
+    padding-left: 1rem;
+  }
+
   .section-header {
     flex-direction: column;
     align-items: flex-start;
@@ -1978,6 +2135,7 @@ h3 { font-size: clamp(1.15rem, 2vw, 1.35rem); }
     inset: 6% 5.5%;
     border-radius: 14px;
   }
+  .about-photo img { aspect-ratio: 4 / 3; }
   .home-photo-toolbar {
     gap: 0.55rem;
     justify-content: space-between;
