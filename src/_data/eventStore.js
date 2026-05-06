@@ -71,8 +71,12 @@ function decodeHtmlEntities(value = "") {
 
 function cleanVisibleText(value = "") {
   return decodeHtmlEntities(String(value).replace(/<[^>]+>/g, " "))
+    .replace(/\b(am|pm)(?=[A-Z])/gi, "$1 ")
+    .replace(/([a-z])([A-Z][a-z])/g, "$1 $2")
+    .replace(/([.)])([A-Z][a-z])/g, "$1 $2")
     .replace(/\s+/g, " ")
     .replace(/\s+([,.;:!?])/g, "$1")
+    .replace(/\.{2,}/g, ".")
     .trim();
 }
 
@@ -86,9 +90,11 @@ function cleanParagraphText(value = "") {
 
 function normalizeImportedTitle(title = "") {
   return cleanVisibleText(title)
+    .replace(/^See details\s+/i, "")
     .replace(/"([^"]+)"/g, "$1")
     .replace(/\bA\.I\.\b/g, "AI")
     .replace(/Short-Story\/Film/g, "Short Story Film")
+    .replace(/\s+White Plains Performing Arts Center$/i, "")
     .replace(/\s+-\s+/g, ": ");
 }
 
@@ -159,8 +165,14 @@ function normalizeLocationName(event) {
     .replace(/\bAsk Staff For More Information\b/gi, "")
     .replace(/\bMamaroneck Ave(?=\.|\b)/gi, "Mamaroneck Avenue")
     .replace(/\bCourt St(?=\.|\b)/gi, "Court Street")
+    .replace(/\bNorth St(?=\.|\b)/gi, "North Street")
+    .replace(/\bChurch St(?=\.|\b)/gi, "Church Street")
+    .replace(/\bS\. Lexington Ave(?=\.|\b)/gi, "South Lexington Avenue")
     .replace(/\bAvenue\./g, "Avenue")
     .replace(/\bStreet\./g, "Street")
+    .replace(/\bAve\.(?=,|\s|$)/gi, "Avenue")
+    .replace(/\bSt\.(?!\s+Patrick)(?=,|\s|$)/gi, "Street")
+    .replace(/\bRd\.(?=,|\s|$)/gi, "Road")
     .replace(/\s*\/\s*/g, " / ")
     .replace(/\.\.+/g, ".")
     .replace(/\s*,\s*$/g, "")
@@ -178,8 +190,14 @@ function normalizeLocationAddress(event) {
   return cleanVisibleText(event.locationAddress)
     .replace(/\bMamaroneck Ave(?=\.|\b)/gi, "Mamaroneck Avenue")
     .replace(/\bCourt St(?=\.|\b)/gi, "Court Street")
+    .replace(/\bNorth St(?=\.|\b)/gi, "North Street")
+    .replace(/\bChurch St(?=\.|\b)/gi, "Church Street")
+    .replace(/\bS\. Lexington Ave(?=\.|\b)/gi, "South Lexington Avenue")
     .replace(/\bAvenue\./g, "Avenue")
     .replace(/\bStreet\./g, "Street")
+    .replace(/\bAve\.(?=,|\s|$)/gi, "Avenue")
+    .replace(/\bSt\.(?!\s+Patrick)(?=,|\s|$)/gi, "Street")
+    .replace(/\bRd\.(?=,|\s|$)/gi, "Road")
     .replace(/\.\.+/g, ".")
     .replace(/\s+/g, " ")
     .trim();
@@ -191,27 +209,43 @@ function buildGenericCitySummary(event) {
 
   if (/meeting|board|commission|council|hearing|agency|corporation|review/i.test(title)) {
     if (location && location.toLowerCase() !== "white plains") {
-      return `Public meeting at ${location}. Check the city page for the agenda and current details.`;
+      return `Public meeting at ${location}. Agenda and updates are available from the City.`;
     }
 
-    return "Public city meeting in White Plains. Check the city page for the agenda and current details.";
+    return "Public city meeting in White Plains. Agenda and updates are available from the City.";
   }
 
   if (location && location.toLowerCase() !== "white plains") {
-    return `${title} at ${location}. Check the city page for current details.`;
+    return `${title} at ${location}. Details are available from the City.`;
   }
 
-  return `${title} in White Plains. Check the city page for current details.`;
+  return `${title} in White Plains. Details are available from the City.`;
 }
 
 function normalizeShortSummary(event) {
-  const cleaned = cleanVisibleText(event.shortSummary);
+  const title = normalizeImportedTitle(event.title);
+  const cleaned = cleanVisibleText(event.shortSummary)
+    .replace(/^Location:\s*/i, "")
+    .replace(/\bMamaroneck Ave(?=\.|\b)/gi, "Mamaroneck Avenue")
+    .replace(/\bAve\.(?=,|\s|$)/gi, "Avenue")
+    .replace(/\bSt\.(?!\s+Patrick)(?=,|\s|$)/gi, "Street")
+    .replace(/\b(Avenue|Street|Road)\.,/gi, "$1,")
+    .replace(/\bRd\.(?=,|\s|$)/gi, "Road")
+    .trim();
 
   if (!cleaned) {
     return buildGenericCitySummary(event);
   }
 
-  if (/is listed on the official White Plains city calendar\.?$/i.test(cleaned)) {
+  if (/soccer fest/i.test(title) && /Block Party/i.test(cleaned)) {
+    return "A downtown fan festival and block party on Mamaroneck Avenue with family-friendly activities.";
+  }
+
+  if (/rock the block/i.test(title)) {
+    return "Downtown summer street music and dining on Mamaroneck Avenue.";
+  }
+
+  if (/is listed on the official White Plains city calendar/i.test(cleaned)) {
     return buildGenericCitySummary(event);
   }
 
@@ -223,20 +257,28 @@ function normalizeFullDescription(event) {
   const title = normalizeImportedTitle(event.title);
   const location = normalizeLocationName(event);
 
+  if (/soccer fest/i.test(title) && /Block Party/i.test(cleaned)) {
+    return "White Plains Soccer Fest brings a downtown fan festival and block party to Mamaroneck Avenue with family-friendly activities, food, and shuttle information from the BID.\n\nUse the BID page for schedule details, participating businesses, and weather updates.";
+  }
+
+  if (/rock the block/i.test(title)) {
+    return "Rock the Block is a downtown summer street series on Mamaroneck Avenue with live music, dining, and family activity.\n\nUse the BID page for lineup details, participating businesses, and weather updates.";
+  }
+
   if (/is listed on the official White Plains city calendar/i.test(cleaned)) {
     if (/meeting|board|commission|council|hearing|agency|corporation|review/i.test(title)) {
       if (location && location.toLowerCase() !== "white plains") {
-        return `${title} is on the City of White Plains calendar for ${location}.\n\nCheck the city page for the agenda, any location updates, and last-minute changes.`;
+        return `${title} is on the City of White Plains calendar for ${location}.\n\nUse the City listing for the agenda, location updates, and schedule changes.`;
       }
 
-      return `${title} is on the City of White Plains calendar.\n\nCheck the city page for the agenda, any location updates, and last-minute changes.`;
+      return `${title} is on the City of White Plains calendar.\n\nUse the City listing for the agenda, location updates, and schedule changes.`;
     }
 
     if (location && location.toLowerCase() !== "white plains") {
-      return `${title} is on the City of White Plains calendar for ${location}.\n\nCheck the city page for current details, updates, and any schedule changes.`;
+      return `${title} is on the City of White Plains calendar for ${location}.\n\nUse the City listing for details, updates, and any schedule changes.`;
     }
 
-    return `${title} is on the City of White Plains calendar.\n\nCheck the city page for current details, updates, and any schedule changes.`;
+    return `${title} is on the City of White Plains calendar.\n\nUse the City listing for details, updates, and any schedule changes.`;
   }
 
   return cleaned;

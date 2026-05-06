@@ -90,9 +90,9 @@ That updates `src/_data/events.auto.json` locally without changing any templates
 
 This project is configured to publish as a GitHub Pages project site at:
 
-`https://never-nude.github.io/wpcna6/`
+`https://never-nude.github.io/wpcna7/`
 
-In production, the build uses the `/wpcna6/` path prefix so links and assets resolve correctly on GitHub Pages.
+In production, the build uses the `/wpcna7/` path prefix so links and assets resolve correctly on GitHub Pages.
 
 ## Ask White Plains
 

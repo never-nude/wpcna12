@@ -24,14 +24,14 @@ eleventyComputed:
     <div class="detail-grid">
       <article class="detail-main">
         {% if event.displayImage %}
-          <div style="border-radius:var(--radius-lg);overflow:hidden;margin-bottom:1.5rem">
+          <div class="detail-image">
             <img src="{{ event.displayImage | withPrefix }}" alt="" loading="eager">
           </div>
         {% endif %}
 
         <div class="detail-meta">
           <span class="tag">{{ event.category }}</span>
-          <span style="font-size:0.85rem;color:var(--ink-muted)">{{ event.organizer }}</span>
+          <span class="detail-organizer">{{ event.organizer }}</span>
           {% if event.status == "past" %}
             <span class="tag tag-muted">Past event</span>
           {% endif %}

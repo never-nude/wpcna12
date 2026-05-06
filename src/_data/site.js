@@ -1,5 +1,5 @@
 const runtimePathPrefix = process.env.SITE_PATH_PREFIX || "/";
-const canonicalPathPrefix = process.env.CANONICAL_PATH_PREFIX || process.env.SITE_PATH_PREFIX || "/wpcna6";
+const canonicalPathPrefix = process.env.CANONICAL_PATH_PREFIX || process.env.SITE_PATH_PREFIX || "/wpcna7";
 const deployBaseUrl = process.env.SITE_BASE_URL || "https://never-nude.github.io";
 const cleanCanonicalPrefix = canonicalPathPrefix === "/" ? "" : canonicalPathPrefix.replace(/\/$/, "");
 const homeHeroImage = "/assets/img/home/legacy-carousel/White-Plains.jpeg";
@@ -45,7 +45,7 @@ module.exports = {
   tagline: "Neighborhood-centered civic hub for White Plains.",
   baseUrl: `${deployBaseUrl.replace(/\/$/, "")}${cleanCanonicalPrefix}`,
   pathPrefix: runtimePathPrefix,
-  themeColor: "#fbf6f0",
+  themeColor: "#b44d1b",
   contactName: "Michael Dalton, President",
   email: "info@wpcna.org",
   contactFormAction: "https://formsubmit.co/info@wpcna.org",

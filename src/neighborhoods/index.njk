@@ -37,8 +37,9 @@ metaDescription: Explore White Plains through an interactive neighborhood map an
               <a
                 href="{{ neighborhood.detailUrl | withPrefix }}"
                 data-map-region="{{ region.slug }}"
-                aria-label="Open {{ neighborhood.name }}"
+                aria-label="Open {{ neighborhood.name }} profile"
               >
+                <title>Open {{ neighborhood.name }} profile</title>
                 <path d="{{ region.pathD }}"></path>
               </a>
             {% endfor %}
@@ -50,8 +51,8 @@ metaDescription: Explore White Plains through an interactive neighborhood map an
       <div class="interactive-map-sidebar">
         <div class="interactive-map-sidebar-intro">
           <p class="eyebrow">Featured Neighborhoods</p>
-          <h2>12 places to start</h2>
-          <p>These highlighted neighborhoods give residents a practical place to start within the larger White Plains neighborhood guide.</p>
+          <h2>Featured neighborhood areas</h2>
+          <p>These highlighted neighborhoods give residents a practical starting point within the larger White Plains neighborhood guide.</p>
         </div>
 
         <div class="map-tile-grid">

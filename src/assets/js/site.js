@@ -79,17 +79,19 @@ const markStaleUpcomingCards = () => {
   });
 };
 
-const updateEventSectionStates = (sections) => {
+const updateEventSectionStates = (sections, hasActiveFilters = false) => {
   sections.forEach((sec) => {
-    const visible = sec.querySelectorAll("[data-event-card]:not([hidden])").length;
-    const active = sec.querySelectorAll("[data-event-card]:not([data-client-past='true'])").length;
+    const currentCards = Array.from(sec.querySelectorAll("[data-event-card]"))
+      .filter((card) => card.dataset.clientPast !== "true");
+    const visible = currentCards.filter((card) => !card.hidden).length;
+    const active = currentCards.length;
     const count = sec.querySelector("[data-event-count]");
     const filterEmpty = sec.querySelector("[data-filter-empty]");
     const upcomingEmpty = sec.querySelector("[data-upcoming-empty]");
 
     if (count) count.textContent = `${visible} event${visible === 1 ? "" : "s"}`;
-    if (filterEmpty) filterEmpty.hidden = visible !== 0 || active === 0;
-    if (upcomingEmpty) upcomingEmpty.hidden = active !== 0;
+    if (filterEmpty) filterEmpty.hidden = !hasActiveFilters || visible !== 0 || active === 0;
+    if (upcomingEmpty) upcomingEmpty.hidden = hasActiveFilters || active !== 0;
   });
 };
 
@@ -108,6 +110,7 @@ if (filterForm) {
     const search = String(fd.get("search") || "").trim().toLowerCase();
     const category = String(fd.get("category") || "");
     const month = String(fd.get("month") || "");
+    const hasActiveFilters = Boolean(search || category || month);
 
     cards.forEach((card) => {
       card.hidden = !(
@@ -118,7 +121,7 @@ if (filterForm) {
       );
     });
 
-    updateEventSectionStates(sections);
+    updateEventSectionStates(sections, hasActiveFilters);
   };
 
   apply();

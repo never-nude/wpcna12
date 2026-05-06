@@ -31,7 +31,7 @@
       </div>
       <p class="event-card-summary">{{ event.shortSummary }}</p>
       <div class="event-card-actions">
-        <a class="btn btn-primary" href="{{ event.detailUrl | withPrefix }}">Details</a>
+        <a class="btn btn-primary" href="{{ event.detailUrl | withPrefix }}" aria-label="View details for {{ event.title }}">Details</a>
       </div>
     </div>
   </article>
@@ -44,13 +44,13 @@
     <p class="eyebrow">{{ resource.eyebrow }}</p>
     <h3>{{ resource.title }}</h3>
     <p>{{ resource.summary }}</p>
-    <a class="link-arrow" href="{{ href }}"{% if isExternal %} target="_blank" rel="noopener"{% endif %}>{{ resource.ctaLabel }}</a>
+    <a class="link-arrow" href="{{ href }}"{% if isExternal %} target="_blank" rel="noopener"{% endif %} aria-label="{{ resource.ctaLabel }}: {{ resource.title }}">{{ resource.ctaLabel }}</a>
   </article>
 {% endmacro %}
 
 {% macro neighborhoodCard(neighborhood, compact=true) %}
   <article class="neighborhood-card">
-    <a href="{{ neighborhood.detailUrl | withPrefix }}">
+    <a href="{{ neighborhood.detailUrl | withPrefix }}" aria-label="Open {{ neighborhood.name }} profile">
       {% if neighborhood.hero %}
         <span class="neighborhood-card-img">
           <img src="{{ (neighborhood.hero.cardImagePath or neighborhood.hero.imagePath) | withPrefix }}" alt="{{ neighborhood.hero.cardAltText or neighborhood.hero.altText }}" loading="lazy">
