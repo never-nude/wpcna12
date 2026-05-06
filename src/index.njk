@@ -68,7 +68,7 @@ metaDescription: The neighborhood-centered civic hub for agendas, events, repres
 
       <div>
         <div class="represented-neighborhoods-intro">
-          <p>These are the neighborhood associations currently represented through WPCNA on the homepage module.</p>
+          <p>These neighborhood associations are currently represented through WPCNA.</p>
         </div>
 
         <div class="represented-neighborhood-grid">
@@ -79,21 +79,20 @@ metaDescription: The neighborhood-centered civic hub for agendas, events, repres
               {% set thumbSrc = neighborhood.hero.cardImagePath or neighborhood.hero.imagePath %}
               {% set thumbAlt = neighborhood.hero.cardAltText or neighborhood.hero.altText %}
             {% endif %}
-            <button
+            <a
               class="represented-neighborhood-card"
-              type="button"
+              href="{{ neighborhood.detailUrl | withPrefix }}"
               data-map-tile="{{ neighborhood.slug }}"
-              data-neighborhood-trigger
-              data-neighborhood-target="{{ neighborhood.slug }}"
-              aria-controls="represented-neighborhood-modal"
-              aria-haspopup="dialog"
               aria-label="Open {{ neighborhood.name }} neighborhood profile"
             >
               <span class="represented-neighborhood-card-thumb">
                 <img src="{{ thumbSrc | withPrefix }}" alt="{{ thumbAlt }}" loading="lazy">
               </span>
-              <strong>{{ neighborhood.name }}</strong>
-            </button>
+              <span>
+                <strong>{{ neighborhood.name }}</strong>
+                <span class="represented-neighborhood-card-link">View profile</span>
+              </span>
+            </a>
           {% endfor %}
         </div>
       </div>
@@ -125,6 +124,22 @@ metaDescription: The neighborhood-centered civic hub for agendas, events, repres
               <p>{{ paragraph }}</p>
             {% endfor %}
 
+            {% if neighborhood.association %}
+              <div class="association-block association-block-compact">
+                <h3><span>{{ neighborhood.association.name }}</span></h3>
+                <ul>
+                  {% for officer in neighborhood.association.officers %}
+                    <li>
+                      <strong>{{ officer.name }}</strong>, {{ officer.role }}
+                      {% if officer.phone %}
+                        <a href="tel:{{ officer.phone | replace('-', '') }}">{{ officer.phone }}</a>
+                      {% endif %}
+                    </li>
+                  {% endfor %}
+                </ul>
+              </div>
+            {% endif %}
+
             {% if neighborhood.resourceLinks and neighborhood.resourceLinks.length %}
               <div class="represented-modal-links">
                 {% for link in neighborhood.resourceLinks %}
@@ -148,24 +163,29 @@ metaDescription: The neighborhood-centered civic hub for agendas, events, repres
         <p>Scenes from across White Plains that reflect the city&rsquo;s civic character, neighborhoods, and public life.</p>
       </div>
     </div>
-    <div class="home-photo-carousel" data-home-carousel aria-label="White Plains photo carousel">
-      <div class="home-photo-stage">
-        {% for photo in site.closerLookCarousel %}
-          <figure class="home-photo-slide{% if loop.first %} is-active{% endif %}" data-home-carousel-slide{% if not loop.first %} hidden{% endif %}>
-            <img src="{{ photo.src | withPrefix }}" alt="{{ photo.alt }}" loading="lazy">
-          </figure>
-        {% endfor %}
-      </div>
-      <div class="home-photo-toolbar">
-        <button class="carousel-btn" type="button" data-home-carousel-prev aria-label="Previous photo">&larr;</button>
-        <p class="home-photo-status" aria-live="polite"><span data-home-carousel-status>1 / {{ site.closerLookCarousel.length }}</span></p>
-        <button class="carousel-btn" type="button" data-home-carousel-next aria-label="Next photo">&rarr;</button>
-      </div>
+  </div>
+  <div class="home-photo-carousel" data-home-carousel aria-label="White Plains photo carousel">
+    <div class="home-photo-stage">
+      {% for photo in site.closerLookCarousel %}
+        <figure class="home-photo-slide{% if loop.first %} is-active{% endif %}" data-home-carousel-slide{% if not loop.first %} hidden{% endif %}>
+          <img src="{{ photo.src | withPrefix }}" alt="{{ photo.alt }}" loading="lazy">
+          {% if photo.sourceUrl and photo.sourceLabel %}
+            <figcaption class="home-photo-credit">
+              <a href="{{ photo.sourceUrl }}" rel="external noopener" target="_blank">{{ photo.sourceLabel }}</a>
+            </figcaption>
+          {% endif %}
+        </figure>
+      {% endfor %}
+    </div>
+    <div class="home-photo-toolbar">
+      <button class="carousel-btn" type="button" data-home-carousel-prev aria-label="Previous photo">&larr;</button>
+      <p class="home-photo-status" aria-live="polite"><span data-home-carousel-status>1 / {{ site.closerLookCarousel.length }}</span></p>
+      <button class="carousel-btn" type="button" data-home-carousel-next aria-label="Next photo">&rarr;</button>
     </div>
   </div>
 </section>
 
-<section class="section section-rule" data-upcoming-events>
+<section class="section section-rule" data-upcoming-events data-upcoming-limit="{{ eventStore.homeUpcomingLimit }}">
   <div class="wrap">
     <div class="section-header">
       <div>
@@ -179,7 +199,7 @@ metaDescription: The neighborhood-centered civic hub for agendas, events, repres
     {% if eventStore.homeUpcoming.length %}
       <div class="card-grid">
         {% for event in eventStore.homeUpcoming %}
-          {{ eventCard(event, true) }}
+          {{ eventCard(event, true, loop.index > eventStore.homeUpcomingLimit) }}
         {% endfor %}
       </div>
     {% else %}

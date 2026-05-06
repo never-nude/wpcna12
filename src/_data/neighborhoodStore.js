@@ -1,6 +1,11 @@
 const neighborhoods = require("./neighborhoods");
 const neighborhoodHeroes = require("./neighborhood-heroes.json");
+const featuredNeighborhoodMap = require("./featuredNeighborhoodMap");
 const { createPlaceholderHero, createProvidedHero } = require("./neighborhoodHeroHelpers");
+
+const mapRegionBySlug = new Map(
+  (featuredNeighborhoodMap.allRegions || []).map((region) => [region.slug, region])
+);
 
 const groupDescriptions = {
   "Central White Plains":
@@ -105,7 +110,7 @@ const heroOverridesBySlug = {
       "Aerial view over Gedney Meadows with White Plains homes and trees in the foreground and the downtown skyline in the distance."
   }),
   highlands: createPlaceholderHero("Highlands"),
-  carhart: createPlaceholderHero("Carhart"),
+  carhart: createPlaceholderHero("Carhartt"),
   "north-broadway": createPlaceholderHero("North Broadway"),
   "north-street": createProvidedHero({
     neighborhoodName: "North Street",
@@ -134,6 +139,7 @@ const resourceLinksBySlug = {
 const baseNeighborhoods = neighborhoods.map((item, index) => {
   const groupSlug = toKebab(item.group);
   const detailUrl = `/neighborhoods/${item.slug}/`;
+  const mapRegion = mapRegionBySlug.get(item.slug) || null;
   const sentences = splitSentences(item.description);
   const words = item.name.match(/[A-Z0-9][a-z0-9]*/g) || item.name.split(/\s+/);
   const initials = words
@@ -154,6 +160,12 @@ const baseNeighborhoods = neighborhoods.map((item, index) => {
     groupDescription: groupDescriptions[item.group] || "",
     orientationNote: groupOrientationNotes[item.group] || "",
     hero: heroOverridesBySlug[item.slug] || heroBySlug[item.slug] || null,
+    mapRegion: mapRegion
+      ? {
+          pathD: mapRegion.pathD,
+          points: mapRegion.points || ""
+        }
+      : null,
     resourceLinks: resourceLinksBySlug[item.slug] || [],
     detailUrl,
     teaser: sentences[0] || firstSentence(item.description),

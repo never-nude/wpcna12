@@ -47,6 +47,22 @@ eleventyComputed:
           <p>{{ paragraph }}</p>
         {% endfor %}
 
+        {% if neighborhood.association %}
+          <div class="association-block">
+            <h3><span>{{ neighborhood.association.name }}</span></h3>
+            <ul>
+              {% for officer in neighborhood.association.officers %}
+                <li>
+                  <strong>{{ officer.name }}</strong>, {{ officer.role }}
+                  {% if officer.phone %}
+                    <a href="tel:{{ officer.phone | replace('-', '') }}">{{ officer.phone }}</a>
+                  {% endif %}
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+
         <div class="detail-links">
           <h3>In the wider picture</h3>
           <p>{{ neighborhood.groupDescription }}</p>
@@ -63,19 +79,22 @@ eleventyComputed:
           {% endif %}
         </div>
 
-        {% set mapBox = mapBoxes.boxes[neighborhood.slug] %}
-        {% if mapBox %}
+        {% if neighborhood.mapRegion %}
           <div class="detail-minimap">
             <h3>On the map</h3>
             <a class="minimap-frame" href="{{ ('/neighborhood-map/?highlight=' + neighborhood.slug) | withPrefix }}" aria-label="View {{ neighborhood.name }} on the full neighborhood map">
-              <img src="{{ '/assets/img/neighborhood-map.png' | withPrefix }}?v={{ featuredNeighborhoodMap.imageVersion }}" alt="Static map of White Plains with {{ neighborhood.name }} highlighted." loading="lazy">
-              <span
-                class="minimap-highlight"
-                style="left:{{ (mapBox[0] / mapBoxes.imageWidth * 100) }}%;top:{{ (mapBox[1] / mapBoxes.imageHeight * 100) }}%;width:{{ (mapBox[2] / mapBoxes.imageWidth * 100) }}%;height:{{ (mapBox[3] / mapBoxes.imageHeight * 100) }}%;"
+              <img src="{{ featuredNeighborhoodMap.imagePath | withPrefix }}?v={{ featuredNeighborhoodMap.imageVersion }}" alt="Static map of White Plains with {{ neighborhood.name }} outlined." loading="lazy">
+              <svg
+                class="minimap-svg"
+                viewBox="0 0 {{ featuredNeighborhoodMap.viewBoxWidth }} {{ featuredNeighborhoodMap.viewBoxHeight }}"
                 aria-hidden="true"
-              ></span>
+                focusable="false"
+                preserveAspectRatio="xMidYMid meet"
+              >
+                <path class="minimap-polygon" d="{{ neighborhood.mapRegion.pathD }}"></path>
+              </svg>
             </a>
-            <p class="minimap-caption">{{ neighborhood.name }} shown on the White Plains neighborhood map. <a href="{{ ('/neighborhood-map/?highlight=' + neighborhood.slug) | withPrefix }}">Open full map →</a></p>
+            <p class="minimap-caption">{{ neighborhood.name }} outlined on the White Plains neighborhood map. <a href="{{ ('/neighborhood-map/?highlight=' + neighborhood.slug) | withPrefix }}">Open full map →</a></p>
           </div>
         {% endif %}
       </article>
@@ -91,21 +110,7 @@ eleventyComputed:
             {% endif %}
             <div><dt>City</dt><dd>White Plains</dd></div>
           </dl>
-          <a class="btn btn-primary btn-block" href="{{ '/events/' | withPrefix }}">See events</a>
-          <a class="detail-map-link" href="{{ ('/neighborhood-map/?highlight=' + neighborhood.slug) | withPrefix }}">View {{ neighborhood.name }} on the map</a>
         </div>
-
-        {% if neighborhood.relatedNeighborhoods.length %}
-          <div class="sidebar-secondary">
-            <p class="eyebrow">Nearby</p>
-            <h3>Nearby neighborhoods</h3>
-            <ul>
-              {% for related in neighborhood.relatedNeighborhoods %}
-                <li><a href="{{ related.detailUrl | withPrefix }}">{{ related.name }}</a></li>
-              {% endfor %}
-            </ul>
-          </div>
-        {% endif %}
       </aside>
     </div>
   </div>

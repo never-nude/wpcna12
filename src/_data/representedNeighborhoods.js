@@ -6,7 +6,7 @@ const mapRegionBySlug = new Map(
     region
   ])
 );
-const includeGedneyMeadows = false;
+const includeGedneyMeadows = true;
 
 function uniqueParagraphs(paragraphs = []) {
   const seen = new Set();
@@ -62,6 +62,7 @@ function buildExisting(slug, overrides = {}) {
         }
       : null,
     resourceLinks: neighborhood.resourceLinks || [],
+    association: overrides.association || neighborhood.association || null,
     detailUrl: neighborhood.detailUrl,
     reviewNote: overrides.reviewNote || "",
     aliases: overrides.aliases || [],
@@ -81,7 +82,7 @@ const items = [
   buildExisting("battle-hill"),
   buildExisting("fisher-hill"),
   buildExisting("highlands"),
-  buildExisting("carhart", { aliases: ["Carhartt"] }),
+  buildExisting("carhart", { aliases: ["Carhart"] }),
   buildExisting("gedney-farms"),
   buildExisting("north-street"),
   buildExisting("rosedale"),

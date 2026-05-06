@@ -13,6 +13,8 @@ try {
 const TIME_ZONE = "America/New_York";
 const MAX_UPCOMING_PER_MONTH = 20;
 const MAX_UPCOMING_PER_SERIES_PER_MONTH = 3;
+const HOME_UPCOMING_LIMIT = 6;
+const HOME_UPCOMING_POOL_SIZE = 30;
 const MIN_UPCOMING_SELECTION_SCORE = 10;
 const HTML_ENTITY_MAP = {
   "&amp;": "&",
@@ -698,7 +700,7 @@ const months = [...new Set(visibleAll.map((event) => event.monthKey))].sort();
 
 const featuredUpcoming = upcoming.filter((event) => event.featured);
 const featuredPast = past.filter((event) => event.featured);
-const homeUpcoming = upcoming.slice(0, 6);
+const homeUpcoming = upcoming.slice(0, HOME_UPCOMING_POOL_SIZE);
 const homePast = (featuredPast.length ? featuredPast : past).slice(0, 4);
 
 module.exports = {
@@ -708,6 +710,7 @@ module.exports = {
   past,
   categories,
   months,
+  homeUpcomingLimit: HOME_UPCOMING_LIMIT,
   homeUpcoming,
   homePast
 };

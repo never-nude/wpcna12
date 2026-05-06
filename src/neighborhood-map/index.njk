@@ -16,16 +16,24 @@ metaDescription: A map of the neighborhoods that make up White Plains, New York.
     <figure
       class="about-photo map-figure neighborhood-map-figure"
       id="wpcna-map"
-      data-map-w="{{ mapBoxes.imageWidth }}"
-      data-map-h="{{ mapBoxes.imageHeight }}"
     >
       <img
-        src="{{ '/assets/img/neighborhood-map.png' | withPrefix }}?v={{ featuredNeighborhoodMap.imageVersion }}"
-        alt="Map of White Plains showing neighborhood boundaries and labels."
+        src="{{ featuredNeighborhoodMap.imagePath | withPrefix }}?v={{ featuredNeighborhoodMap.imageVersion }}"
+        alt="{{ featuredNeighborhoodMap.imageAlt }}"
         loading="eager"
         class="neighborhood-map-image"
       >
-      <div class="map-highlight" id="wpcna-map-highlight" aria-hidden="true"></div>
+      <svg
+        class="map-outline-svg"
+        viewBox="0 0 {{ featuredNeighborhoodMap.viewBoxWidth }} {{ featuredNeighborhoodMap.viewBoxHeight }}"
+        aria-hidden="true"
+        focusable="false"
+        preserveAspectRatio="xMidYMid meet"
+      >
+        {% for region in featuredNeighborhoodMap.allRegions %}
+          <path class="map-outline-path" data-map-outline="{{ region.slug }}" d="{{ region.pathD }}"></path>
+        {% endfor %}
+      </svg>
       <figcaption id="wpcna-map-caption" class="interactive-map-caption neighborhood-map-caption">
         Map of White Plains neighborhoods.
       </figcaption>
@@ -47,39 +55,25 @@ metaDescription: A map of the neighborhoods that make up White Plains, New York.
     </div>
   </div>
 </section>
-<script id="wpcna-map-boxes" type="application/json">{{ mapBoxes.boxes | dump | safe }}</script>
 <script>
 (function () {
   var fig = document.getElementById('wpcna-map');
-  var hl = document.getElementById('wpcna-map-highlight');
   var cap = document.getElementById('wpcna-map-caption');
-  var dataEl = document.getElementById('wpcna-map-boxes');
-  if (!fig || !hl || !dataEl) return;
-  var boxes;
-  try { boxes = JSON.parse(dataEl.textContent); } catch (e) { return; }
-  var mapW = parseFloat(fig.dataset.mapW);
-  var mapH = parseFloat(fig.dataset.mapH);
-  if (!mapW || !mapH) return;
+  if (!fig) return;
 
   var params = new URLSearchParams(window.location.search);
   var slug = params.get('highlight');
   var hash = (window.location.hash || '').replace('#', '');
   if (!slug && hash) slug = hash;
   if (!slug) return;
-  var box = boxes[slug];
-  if (!box) return;
+  var outline = fig.querySelector('[data-map-outline="' + slug + '"]');
+  if (!outline) return;
 
-  var x = box[0], y = box[1], w = box[2], h = box[3];
-  hl.style.left   = (x / mapW * 100) + '%';
-  hl.style.top    = (y / mapH * 100) + '%';
-  hl.style.width  = (w / mapW * 100) + '%';
-  hl.style.height = (h / mapH * 100) + '%';
-  hl.classList.add('is-active');
+  outline.classList.add('is-active');
 
   var name = slug.replace(/-/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
-  if (cap) cap.textContent = 'Highlighted: ' + name;
+  if (cap) cap.textContent = 'Outlined: ' + name;
 
-  // Scroll the map into view so users see the highlight immediately
   requestAnimationFrame(function () {
     fig.scrollIntoView({ behavior: 'smooth', block: 'center' });
   });

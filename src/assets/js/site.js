@@ -79,6 +79,27 @@ const markStaleUpcomingCards = () => {
   });
 };
 
+const applyUpcomingCardLimit = (section) => {
+  const limit = Number(section.dataset.upcomingLimit || 0);
+
+  if (!limit) return;
+
+  let visibleCount = 0;
+
+  section.querySelectorAll("[data-event-card]").forEach((card) => {
+    const shouldShow = card.dataset.clientPast !== "true" && visibleCount < limit;
+    card.hidden = !shouldShow;
+
+    if (shouldShow) {
+      visibleCount += 1;
+    }
+  });
+};
+
+const applyUpcomingCardLimits = () => {
+  document.querySelectorAll("[data-upcoming-events][data-upcoming-limit]").forEach(applyUpcomingCardLimit);
+};
+
 const updateEventSectionStates = (sections, hasActiveFilters = false) => {
   sections.forEach((sec) => {
     const currentCards = Array.from(sec.querySelectorAll("[data-event-card]"))
@@ -96,6 +117,7 @@ const updateEventSectionStates = (sections, hasActiveFilters = false) => {
 };
 
 markStaleUpcomingCards();
+applyUpcomingCardLimits();
 updateEventSectionStates(Array.from(new Set([
   ...document.querySelectorAll("[data-event-section]"),
   ...document.querySelectorAll("[data-upcoming-events]")
@@ -339,7 +361,7 @@ if (neighborhoodMap) {
 
     source.addEventListener("focusin", () => {
       window.requestAnimationFrame(() => {
-        if (source.matches(":focus-visible")) {
+        if (source.matches(":focus-visible") || source.contains(document.activeElement)) {
           setActive(slug);
         } else {
           restoreActive();

@@ -1,4 +1,4 @@
-{% macro eventCard(event, featured=false) %}
+{% macro eventCard(event, featured=false, initiallyHidden=false) %}
   <article
     class="event-card"
     data-event-card
@@ -10,6 +10,7 @@
     data-start-time="{{ event.startTime or '' }}"
     data-end-time="{{ event.endTime or '' }}"
     data-search="{{ event.searchText }}"
+    {% if initiallyHidden %}hidden{% endif %}
   >
     {% if featured and event.displayImage %}
       <a class="event-card-img" href="{{ event.detailUrl | withPrefix }}" aria-hidden="true" tabindex="-1">

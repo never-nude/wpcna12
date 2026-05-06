@@ -53,7 +53,25 @@ module.exports = [
     name: "Fisher Hill",
     group: "West Side and Near-Downtown Neighborhoods",
     description:
-      "Fisher Hill is a small, clearly defined residential pocket near the center of White Plains. It has a compact, established feel, with the kind of older homes and quieter streets that give a neighborhood a shape of its own."
+      "Fisher Hill is a historic neighborhood within walking distance of the central business district of White Plains, NY. Residential development began around 1900, and many of the large vintage homes from that era still define the neighborhood's character today. Fisher Hill is notably diverse in ethnicity, age, and income.",
+    association: {
+      name: "Fisher Hill Association",
+      officers: [
+        {
+          name: "Michael Dalton",
+          role: "President",
+          phone: "914-497-7236"
+        },
+        {
+          name: "Jonna Robbins",
+          role: "Vice President"
+        },
+        {
+          name: "Jane Prout",
+          role: "Treasurer"
+        }
+      ]
+    }
   },
   {
     slug: "highlands",
@@ -155,10 +173,10 @@ module.exports = [
   },
   {
     slug: "carhart",
-    name: "Carhart",
+    name: "Carhartt",
     group: "East Side and Institutional Anchors",
     description:
-      "Carhart is a compact neighborhood area near the middle of White Plains, positioned between the close-in residential blocks, institutional anchors, and larger south-side neighborhoods around it. It is one of the neighborhood associations currently represented through WPCNA, giving residents another point of connection within the council."
+      "Carhartt is a compact neighborhood area near the middle of White Plains, positioned between the close-in residential blocks, institutional anchors, and larger south-side neighborhoods around it. It is one of the neighborhood associations currently represented through WPCNA, giving residents another point of connection within the council."
   },
   {
     slug: "kirkbride-asylum",

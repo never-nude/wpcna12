@@ -1,5 +1,5 @@
 const runtimePathPrefix = process.env.SITE_PATH_PREFIX || "/";
-const canonicalPathPrefix = process.env.CANONICAL_PATH_PREFIX || process.env.SITE_PATH_PREFIX || "/wpcna7";
+const canonicalPathPrefix = process.env.CANONICAL_PATH_PREFIX || process.env.SITE_PATH_PREFIX || "/wpcna9";
 const deployBaseUrl = process.env.SITE_BASE_URL || "https://never-nude.github.io";
 const cleanCanonicalPrefix = canonicalPathPrefix === "/" ? "" : canonicalPathPrefix.replace(/\/$/, "");
 const homeHeroImage = "/assets/img/home/legacy-carousel/White-Plains.jpeg";
@@ -48,6 +48,56 @@ const legacyCarousel = [
     alt: "Tudor-style home on a White Plains street in soft evening light with mature trees in front."
   }
 ];
+const commonsCarousel = [
+  {
+    src: "/assets/img/home/commons/downtown-white-plains-2007.jpg",
+    alt: "Downtown White Plains skyline with civic and commercial buildings rising above nearby streets.",
+    sourceLabel: "Jawny80, public domain, via Wikimedia Commons",
+    sourceUrl: "https://commons.wikimedia.org/wiki/File:Downtown_White_Plains.jpg"
+  },
+  {
+    src: "/assets/img/home/commons/city-of-white-plains-2012.jpg",
+    alt: "Wide view of White Plains from the west side with downtown buildings beyond a leafy residential foreground.",
+    sourceLabel: "Steve Carrea, public domain, via Wikimedia Commons",
+    sourceUrl: "https://commons.wikimedia.org/wiki/File:City_of_White_Plains,_Jul_2012.jpg"
+  },
+  {
+    src: "/assets/img/home/commons/downtown-white-plains-ne.jpg",
+    alt: "Downtown White Plains seen from the northeast with towers, neighborhoods, and distant hills.",
+    sourceLabel: "Ynsalh, CC BY-SA 4.0, via Wikimedia Commons",
+    sourceUrl: "https://commons.wikimedia.org/wiki/File:Downtown_White_Plains_from_the_NE.jpg"
+  },
+  {
+    src: "/assets/img/home/commons/mlk-drive-library.jpg",
+    alt: "Martin Luther King Drive in White Plains with the public library and courthouse area in view.",
+    sourceLabel: "Paul Sableman, CC BY 2.0, via Wikimedia Commons",
+    sourceUrl: "https://commons.wikimedia.org/wiki/File:Dr._Martin_Luther_King_Drive_-_White_Plains,_NY_and_the_White_Plains_Library.jpg"
+  },
+  {
+    src: "/assets/img/home/commons/downtown-white-plains-2010.jpg",
+    alt: "Street-level view of downtown White Plains with buildings, sidewalks, and city traffic.",
+    sourceLabel: "Paul Sableman, CC BY 2.0, via Wikimedia Commons",
+    sourceUrl: "https://commons.wikimedia.org/wiki/File:Downtown_White_Plains,_NY_2010-05-20.jpg"
+  },
+  {
+    src: "/assets/img/home/commons/white-plains-skyline.jpg",
+    alt: "White Plains skyline with modern high-rises and treetops in the foreground.",
+    sourceLabel: "Reck345, CC BY-SA 4.0, via Wikimedia Commons",
+    sourceUrl: "https://commons.wikimedia.org/wiki/File:White_Plains_Skyline.JPG"
+  },
+  {
+    src: "/assets/img/home/commons/downtown-route-119-2011.jpg",
+    alt: "Downtown White Plains and New York State Route 119 with city buildings and winter light.",
+    sourceLabel: "Doug Kerr, CC BY-SA 2.0, via Wikimedia Commons",
+    sourceUrl: "https://commons.wikimedia.org/wiki/File:Downtown_White_Plains_and_New_York_State_Route_119_2011-12-24.jpg"
+  },
+  {
+    src: "/assets/img/home/commons/fountain-white-plains.jpg",
+    alt: "Fountain in White Plains with water jets and city surroundings.",
+    sourceLabel: "Blithebear, CC0, via Wikimedia Commons",
+    sourceUrl: "https://commons.wikimedia.org/wiki/File:Fountain_in_White_Plains,_NY.jpg"
+  }
+];
 
 module.exports = {
   name: "White Plains Council of Neighborhood Associations",
@@ -79,7 +129,10 @@ module.exports = {
   postingHeroImage,
   postingHeroImageAlt: "WPCNA members and neighbors holding a WPCNA banner during a White Plains parade.",
   legacyCarousel,
-  closerLookCarousel: legacyCarousel.filter((photo) => !pageHeroImages.has(photo.src)),
+  commonsCarousel,
+  closerLookCarousel: [...legacyCarousel, ...commonsCarousel].filter(
+    (photo) => !pageHeroImages.has(photo.src)
+  ),
   mission:
     "WPCNA brings neighborhood associations together, shares civic information across the city, and helps residents stay connected to public life in White Plains.",
   purpose:
