@@ -624,7 +624,8 @@ h3 { font-size: clamp(1.12rem, 1.8vw, 1.38rem); }
 }
 
 .image-hero-block {
-  width: min(100%, 30rem);
+  width: fit-content;
+  max-width: calc(100vw - 2rem);
   margin: 0;
   padding: clamp(1.1rem, 2.6vw, 1.75rem);
   background: var(--brand);
@@ -648,7 +649,12 @@ h3 { font-size: clamp(1.12rem, 1.8vw, 1.38rem); }
 .image-hero-block h1 {
   margin-bottom: 0;
   font-size: clamp(2rem, 4vw, 3.5rem);
-  letter-spacing: -0.035em;
+  letter-spacing: 0;
+}
+
+.image-hero:not(.image-hero-home) .image-hero-block h1 {
+  font-size: clamp(2rem, 5.2vw, 4.6rem);
+  white-space: nowrap;
 }
 
 .image-hero-block p {
@@ -678,7 +684,7 @@ h3 { font-size: clamp(1.12rem, 1.8vw, 1.38rem); }
 }
 
 .image-hero-block-neighborhoods {
-  width: min(100%, 24rem);
+  min-width: min(100%, 24rem);
 }
 
 .image-hero-placeholder {
@@ -2742,7 +2748,8 @@ h3 { font-size: clamp(1.12rem, 1.8vw, 1.38rem); }
   }
 
   .image-hero-block {
-    width: min(86vw, 28rem);
+    width: fit-content;
+    max-width: calc(100vw - 2rem);
   }
 
   .image-hero-home .image-hero-block {
@@ -2751,6 +2758,14 @@ h3 { font-size: clamp(1.12rem, 1.8vw, 1.38rem); }
 
   .image-hero-about .image-hero-block {
     width: min(88vw, 34rem);
+  }
+
+  .image-hero-block-neighborhoods {
+    min-width: 0;
+  }
+
+  .image-hero:not(.image-hero-home) .image-hero-block h1 {
+    font-size: clamp(2.45rem, 7.2vw, 4rem);
   }
 
   .neighborhood-detail-hero-block {
@@ -2805,7 +2820,8 @@ h3 { font-size: clamp(1.12rem, 1.8vw, 1.38rem); }
   }
 
   .image-hero-block {
-    width: min(84vw, 22rem);
+    width: fit-content;
+    max-width: calc(100vw - 2rem);
     padding: 1rem;
   }
 
@@ -2815,6 +2831,14 @@ h3 { font-size: clamp(1.12rem, 1.8vw, 1.38rem); }
 
   .image-hero-about .image-hero-block {
     width: min(88vw, 30rem);
+  }
+
+  .image-hero-block-neighborhoods {
+    min-width: 0;
+  }
+
+  .image-hero:not(.image-hero-home) .image-hero-block h1 {
+    font-size: clamp(2rem, 9.5vw, 3rem);
   }
 
   .neighborhood-detail-hero-block {
