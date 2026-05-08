@@ -624,7 +624,8 @@ h3 { font-size: clamp(1.12rem, 1.8vw, 1.38rem); }
 }
 
 .image-hero-block {
-  width: min(calc(100vw - 2rem), 36rem);
+  width: max-content;
+  max-width: min(calc(100vw - 2rem), 36rem);
   margin: 0;
   padding: clamp(1.1rem, 2.6vw, 1.75rem);
   background: var(--brand);
@@ -633,7 +634,8 @@ h3 { font-size: clamp(1.12rem, 1.8vw, 1.38rem); }
 }
 
 .neighborhood-detail-hero-block {
-  width: min(100%, 24rem);
+  width: max-content;
+  max-width: min(calc(100vw - 2rem), 28rem);
 }
 
 .neighborhood-detail-hero-block h1 {
@@ -682,7 +684,6 @@ h3 { font-size: clamp(1.12rem, 1.8vw, 1.38rem); }
 }
 
 .image-hero-block-neighborhoods {
-  width: max-content;
   max-width: calc(100vw - 2rem);
 }
 
@@ -2752,7 +2753,8 @@ h3 { font-size: clamp(1.12rem, 1.8vw, 1.38rem); }
   }
 
   .image-hero-block {
-    width: min(calc(100vw - 2rem), 34rem);
+    width: max-content;
+    max-width: min(calc(100vw - 2rem), 34rem);
   }
 
   .image-hero-home .image-hero-block {
@@ -2764,12 +2766,12 @@ h3 { font-size: clamp(1.12rem, 1.8vw, 1.38rem); }
   }
 
   .image-hero-block-neighborhoods {
-    width: max-content;
     max-width: calc(100vw - 2rem);
   }
 
   .neighborhood-detail-hero-block {
-    width: min(74vw, 24rem);
+    width: max-content;
+    max-width: min(calc(100vw - 2rem), 24rem);
   }
 
   .map-tile-grid { grid-template-columns: 1fr 1fr; }
@@ -2820,7 +2822,8 @@ h3 { font-size: clamp(1.12rem, 1.8vw, 1.38rem); }
   }
 
   .image-hero-block {
-    width: min(calc(100vw - 2rem), 30rem);
+    width: max-content;
+    max-width: min(calc(100vw - 2rem), 30rem);
     padding: 1rem;
   }
 
@@ -2833,12 +2836,12 @@ h3 { font-size: clamp(1.12rem, 1.8vw, 1.38rem); }
   }
 
   .image-hero-block-neighborhoods {
-    width: max-content;
     max-width: calc(100vw - 2rem);
   }
 
   .neighborhood-detail-hero-block {
-    width: min(74vw, 20rem);
+    width: max-content;
+    max-width: min(calc(100vw - 2rem), 20rem);
   }
 
   .home-photo-carousel { padding: 0; }
