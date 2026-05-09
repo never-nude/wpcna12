@@ -1960,6 +1960,33 @@
     "importSource": "city"
   },
   {
+    "id": "city-design-review-board-2026-05-11",
+    "slug": "city-design-review-board-2026-05-11",
+    "title": "Design Review Board",
+    "category": "Civic",
+    "shortSummary": "Design Review Board is listed on the official White Plains city calendar.",
+    "fullDescription": "Design Review Board is listed on the official White Plains city calendar. It is set for White Plains, NY. Use the official city page for agendas, updates, and any location changes.",
+    "startDate": "2026-05-11",
+    "endDate": "2026-05-11",
+    "startTime": "19:00",
+    "endTime": "21:00",
+    "locationName": "White Plains",
+    "locationAddress": "White Plains, NY",
+    "image": "/assets/img/events/civic.svg",
+    "flyerPdf": null,
+    "externalUrl": "https://www.cityofwhiteplains.com/Calendar.aspx?EID=4333&month=5&year=2026&day=11&calType=0",
+    "ctaLabel": "Open city page",
+    "featured": false,
+    "status": "upcoming",
+    "tags": [
+      "city calendar"
+    ],
+    "organizer": "City of White Plains",
+    "sourceUrl": "https://www.cityofwhiteplains.com/Calendar.aspx?EID=4333&month=5&year=2026&day=11&calType=0",
+    "sourceLabel": "City calendar",
+    "importSource": "city"
+  },
+  {
     "id": "library-save-a-life-with-narcan-training-2026-05-12",
     "slug": "library-save-a-life-with-narcan-training-2026-05-12",
     "title": "Save a Life with Narcan Training",
@@ -3833,7 +3860,7 @@
     "endDate": "2026-06-16",
     "startTime": "14:00",
     "endTime": "15:00",
-    "locationName": "White Plains Public Library, Community Room",
+    "locationName": "White Plains Public Library, Community Room,Virtual",
     "locationAddress": "100 Martine Avenue, White Plains, NY 10601",
     "image": "/assets/img/events/learning.svg",
     "flyerPdf": null,
